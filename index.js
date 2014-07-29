@@ -4,8 +4,8 @@
 var EventEmitter = require("events").EventEmitter;
 var util = require("util");
 var contentElement = require("./contentElement");
-var Cache = require("./cache");
-var ServeAssets = require("./serve-assets");
+var Cache = require("static-cache");
+var ServeAssets = require("serve-assets");
 
 
 
