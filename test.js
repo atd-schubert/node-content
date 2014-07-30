@@ -2,7 +2,7 @@
 
 var CMS = require("./index.js");
 
-var cms = new CMS();
+var cms = new CMS({sitemap:{hostname:"http://atd-schubert.com"}});
 
 var express = require('express');
 var app = express();
