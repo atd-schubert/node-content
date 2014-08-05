@@ -3,12 +3,13 @@
 // var noody = require("noody");
 var EventEmitter = require("events").EventEmitter;
 var util = require("util");
-var contentElement = require("./contentElement");
+var contentManagement = require("./contentManagement");
 var Cache = require("static-cache");
 var ServeAssets = require("serve-assets");
 var Manifest = require("manifest-manager");
 var I18n = require("i18n");
 var Sitemap = require("./sitemap");
+var Noody = require("noody");
 
 
 
@@ -57,7 +58,18 @@ var NodeContentManagement = function NodeContent(opts){
   opts.i18n.directory = opts.i18n.directory || process.cwd()+"/i18n";
   I18n.configure(opts.i18n);
   
+  opts.store = opts.store || {};
+  if(!opts.store.mongoose) {
+    opts.store.mongoose = require("mongoose");
+    opts.store.mongoose.connect('mongodb://localhost/cms');
+  }
+  opts.store.modelName = opts.store.modelName || "cmsstore";
   
+  opts.contentManagement = opts.contentManagement || {};
+  opts.contentManagement.cms = this;
+  
+  this.store = new Noody({store: new Noody.Stores.mongoose(opts.store)});
+  this.contentManagement = contentManagement(opts.contentManagement);
   this.i18n = I18n;
   this.sitemap = new Sitemap(opts.sitemap);
   this.manifest = new Manifest(opts.manifest);
@@ -103,10 +115,10 @@ var NodeContentManagement = function NodeContent(opts){
   this.changeContentElement = function(id){};
 };
 
-NodeContentManagement.Schema = contentElement.Schema;
-NodeContentManagement.View = contentElement.View;
-NodeContentManagement.Model = contentElement.Model;
-//NodeContentManagement.ContentElement = contentElement.ContentElement;
+NodeContentManagement.Schema = contentManagement.Schema;
+NodeContentManagement.View = contentManagement.View;
+NodeContentManagement.Model = contentManagement.Model;
+//NodeContentManagement.ContentElement = contentManagement.ContentElement;
 
 util.inherits(NodeContentManagement, EventEmitter);
 
