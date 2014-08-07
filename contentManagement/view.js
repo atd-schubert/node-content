@@ -8,7 +8,8 @@ module.exports = function(cms){
     if(!opts) throw new Error("You have to set options to the view");
     if(!opts.renderFn && !opts.template && !opts.templatePath) throw new Error("You have to set a render-function or an engine for the view class");
     
-    var contentType = opts.contentType || "text/html"
+    var contentType = opts.contentType || "text/html";
+    var xss = opts.accessControlAllowOrigin || false;
     
     var renderFn = opts.renderFn;
     var middlewares = opts.middlewares || [];
@@ -17,14 +18,13 @@ module.exports = function(cms){
       var engine = opts.engine || require("jade");
       if(engine.compile && engine.compileFile) {
         if(opts.template) renderFn = engine.compile(opts.template);
-        else if(opts.templatePath) renderFn = engine.compileFile(opts.templatePath);
+        else if(opts.templatePath) renderFn = engine.compileFile(opts.templatePath); // TODO: maybe watch for changes...
       } else { // Not a templating engine that is able to compile...
         var template = opts.template || fs.readFileSync(opts.templatePath);
         renderFn = function(data){
           return engine.render(template, data);
         };
       }
-      
     }
     
     this.use = function(middleware){
@@ -43,6 +43,9 @@ module.exports = function(cms){
     };
     this.getContentType = function(){
       return contentType;
+    };
+    this.getAccessControlAllowOrigin = function(){
+      return xss;
     };
     
   };

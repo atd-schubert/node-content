@@ -2,10 +2,11 @@
 
 module.exports = function(cms){
   var ContentElement = function(node){
-    if(!node) return;
+    if(!node) throw new Error("There is no node for creating a contentElement");
     var self = this;
     // TODO: edit, delete, etc...
     var model = cms.contentManagement.Model.getModel(node.name);
+    if(!model) throw new Error("Can't handle content Elements with the type '"+ node.name + "'! Please make a schema for this first...");
     var schema = model.schema;
   
     // set methods
@@ -18,6 +19,34 @@ module.exports = function(cms){
     this.backend = schema.backend;
     this.model = model;
     
+    var registerChanges = function(){
+      cms.emit("contentChange", self);
+      cms.emit("contentChange:"+node._id, self);
+      // Manifeste
+      
+      
+      /*if(node.data.resource.manifest && node.data.resource.manifest.type) {
+        var hash;
+        var routes = [];
+        for (hash in self.views) {
+          
+        }
+        cms.manifest.removeNetwork();
+        switch (node.data.resource.manifest.type.toLowerCase()) {
+          case "cache":
+            cms.manifest.cache("/cms/"+node._id+"/");
+            break;
+          case "network":
+            cms.manifest.network();
+        }
+      }*/
+      // Vanity URLs
+      
+      // Sitemap
+      
+      // ACL
+    };
+    var deregister = function(){};
     
     node.data.content = node.data.content || {};
     node.data.meta = node.data.meta || {};
@@ -35,6 +64,7 @@ module.exports = function(cms){
     //node.data.resource.vanityUrls
     
     
+    this._id = node._id;
     this.getClass = function(){ return node.class };
     this.setClass = function(val){ node.setClass(val)};
     
@@ -60,17 +90,55 @@ module.exports = function(cms){
       if(!self.views[viewName]) cb(new Error("There is no view with this name!"));
       return self.views[viewName].getContentType();
     };
+    this.getAccessControlAllowOrigin = function(viewName){
+      if(!self.views[viewName]) cb(new Error("There is no view with this name!"));
+      return self.views[viewName].getAccessControlAllowOrigin();
+    };
+    this.getBackendAccessControlAllowOrigin = function(viewName){
+      if(!self.backend[viewName]) cb(new Error("There is no view with this name!"));
+      return self.backend[viewName].getAccessControlAllowOrigin();
+    };
     this.getBackendContentType = function(viewName){
       if(!self.backend[viewName]) cb(new Error("There is no view with this name!"));
       return self.backend[viewName].getContentType();
     };
     this.renderBackend = function(viewName, cb){
-      
+      if(!self.backend[viewName]) cb(new Error("There is no view with this name!"));
+      self.backend[viewName].render({ce:self, cms:cms}, cb);
     };
   
-    this.save = function(cb, opts){node.save(cb, opts)};
+    this.save = function(cb, opts){
+      cb = cb || function(){};
+      node.save(function(err){
+        if(err) return cb(err);
+        cb(null, registerChanges());
+      }, opts);
+    };
     this.delete = function(cb, opts){node.delete(cb, opts)};
   };
-
+  
+  ContentElement.get = function(_id, cb){
+    cms.store.getNode(_id, function(err, node){
+      if(err) return cb(new Error(err));
+      if(node.name === "deleted") return cb(null, false);
+      
+      try {
+        var ce = new ContentElement(node);
+      } catch(e) { return cb(e); }
+      cb(null, ce);
+    });
+  };
+  ContentElement.findOne = function(query, cb){
+    cms.store.findOneNode(query, function(err, node){
+      if(err) return cb(new Error(err));
+      if(node.name === "deleted") return cb(null, false);
+      
+      try {
+        var ce = new ContentElement(node);
+      } catch(e) { return cb(e); }
+      cb(null, ce);
+    });
+  };
+  
   return ContentElement;
 }

@@ -21,9 +21,6 @@ var NodeContentManagement = function NodeContent(opts){
   opts.server = opts.server || {};
   //opts.server.hostname = opts.server.hostname;
   
-  opts.backend = opts.backend || {};
-  opts.backend.route = opts.backend.route || "/backend";
-  
   opts.cache = opts.cache || {};
   opts.cache.path = opts.cache.path || process.cwd()+"/._cache";
   opts.cache.ignore = opts.cache.ignore || function(path){return false;}; // ignore nothing by default...
@@ -66,10 +63,14 @@ var NodeContentManagement = function NodeContent(opts){
   opts.store.modelName = opts.store.modelName || "cmsstore";
   
   opts.contentManagement = opts.contentManagement || {};
+  opts.contentManagement.route = opts.contentManagement.route || "/cms";
+  
+  opts.contentManagement.backend = opts.contentManagement.backend || {};
+  opts.contentManagement.backend.route = opts.contentManagement.backend.route || "/backend";
   opts.contentManagement.cms = this;
   
   this.store = new Noody({store: new Noody.Stores.mongoose(opts.store)});
-  this.contentManagement = contentManagement(opts.contentManagement);
+  this.contentManagement = new contentManagement(opts.contentManagement);
   this.i18n = I18n;
   this.sitemap = new Sitemap(opts.sitemap);
   this.manifest = new Manifest(opts.manifest);
@@ -78,41 +79,46 @@ var NodeContentManagement = function NodeContent(opts){
   this.middleware = function(req, res, next){
     // cache
     req.cms = self;
+    res.cms = self;
+    console.log(1);
     self.i18n.init(req, res, function(err){
       if(err) return next(err);
+    console.log(2);
       
       self.cache.serve(req, res, function(err){
         if (err) return next(err);
+    console.log(3);
         
         // Assets packing and minifying
         self.serveAssets.middleware(req, res, function(err){
+    console.log(4);
           if(err) return next(err);
-          // cms route
-          
-          // vanity urls
-          self.manifest.middleware(req, res, function(err){
+          // cms route & vanityURLs
+          self.contentManagement.middleware(req, res, function(err){
+    console.log(5);
             if(err) return next(err);
-            self.sitemap.middleware(req, res, function(err){
+            self.manifest.middleware(req, res, function(err){
+    console.log(6);
               if(err) return next(err);
-              // backend
-              next();
-            }); // sitemap
-          }); // manifest
+              self.sitemap.middleware(req, res, function(err){
+    console.log(7);
+                if(err) return next(err);
+                // backend
+                next();
+              }); // sitemap
+            }); // manifest
+          }); // cms route & vanityURLs
         }); // serve-assets
       }); // cache
     }); // i18n
   };
   
-  
-  this.defineContentElement = function(name, view, controller){
-    
+  this.getContentElement = function(_id, cb){
+    self.contentManagement.ContentElement.get(_id, cb);
   };
-  this.getContentElement = function(id){
-    
+  this.findOneContentElement = function(query, cb){
+    self.contentManagement.ContentElement.findOne(query, cb);
   };
-  this.createContentElement = function(id){};
-  this.deleteContentElement = function(id){};
-  this.changeContentElement = function(id){};
 };
 
 NodeContentManagement.Schema = contentManagement.Schema;
