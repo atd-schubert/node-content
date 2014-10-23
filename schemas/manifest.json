@@ -1,0 +1,23 @@
+{
+  "type": ["object", "null"],
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "id": "http://node-content.atd-schubert.com/schemas/manifest#",
+  "description": "Manifest settings",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "Specify the category of manifestation (network, cache, fallback).",
+      "enum": [
+        "network",
+        "cache",
+        "fallback"
+      ]
+    },
+    "fallback": {
+      "type":"string",
+      "format": "url",
+      "description": "URL to fallback"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "type": ["object", "null"],
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "id": "http://node-content.atd-schubert.com/schemas/sitemap#",
+  "description": "Settings for sitemap",
+  "additionalProperties": false,
+  "properties": {
+    "changeFreq": {
+      "type": "string",
+      "description": "How often changes this site",
+      "enum": [
+        "(auto)",
+        "always",
+        "hourly",
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly",
+        "never"
+      ]
+    },
+    "priority": {
+      "type":"number",
+      "description": "Time in ms till uncaching",
+      "minimum":0,
+      "maximum":1
+    }
+  }
+}

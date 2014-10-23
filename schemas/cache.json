@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "id": "http://node-content.atd-schubert.com/schemas/cache#",
+  "description": "Settings for caching",
+  "additionalProperties": false,
+  "properties": {
+    "enable": {
+      "type": "boolean",
+      "description": "Enable caching?"
+    },
+    "ttl": {
+      "type":"int",
+      "description": "Time in ms till uncaching",
+      "minimum":0
+    }
+  }
+}
