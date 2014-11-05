@@ -1,60 +1,13 @@
 "use strict";
 
-var View = require("./view");
-var Schema = require("./schema");
-var Model = require("./model");
-var QuerySet = require("./query-set");
-var ContentElement = require("./ce");
-
 module.exports = function(opts){
   if(!opts.cms) throw new Error("You have to specify the cms object");
   var self = this;
   var cms = opts.cms;
-  opts.ContentElement = opts.contentElement || {};
-  opts.Schema = opts.Schema || {};
-  opts.Model = opts.Model || {};
-  opts.QuerySet = opts.QuerySet || {};
-  opts.View = opts.View || {};
 
-  this.ContentElement = ContentElement(opts.cms, opts.ContentElement);
-  this.View = View(opts.cms, opts.View);
-  this.Schema = Schema(opts.cms, opts.Schema);
-  this.Model = Model(opts.cms, opts.Model);
-  this.QuerySet = QuerySet(opts.cms, opts.QuerySet);
-  
-  var delOnChange = function(id, url){
-    cms.once("contentChange:"+id, function(){
-      cms.cache.clean(url);
-    });
-  };
-  
   this.middleware = function(req, res, next){
-    if(req.url.substr(0, opts.route.length) === opts.route) { // is in cms path
-      var queryStr = req.url.substr(opts.route.length+1);
-      queryStr = queryStr.split("/");
-      var elemId = queryStr[0];
-      var view = queryStr[1];
-      self.ContentElement.get(elemId, function(err, elem){
-        if(err) return next(err);
-        if(elem && elem.views[view]) {
-          var ct = elem.getContentType(view);
-          elem.render(view, function(err, body){
-            if (err) return next(err);
-            if(elem.data.resource.caching && ct === "text/html") { // TODO: add possibility to cache other resources then html
-              cms.cache.cache(req.url+"/index.html", body);
-              if(elem.data.resource.cachingTtl) cms.cache.ttl(req.url, elem.data.resource.cachingTtl);
-              delOnChange(elem._id, req.url+"/index.html");
-            }
-            var head = {"Content-Type": ct};
-            var xss = elem.getAccessControlAllowOrigin(view);
-            if(xss) head["Access-Control-Allow-Origin"] = xss;
-            res.writeHead(200, head);
-            res.end(body);
-          });
-        }
-        else next();
-      });
-    }
+
+// Backend
     if(req.url.substr(0, opts.backend.route.length) === opts.backend.route) { //backend
       // TODO: check for authentication first!
     
@@ -62,40 +15,57 @@ module.exports = function(opts){
         return res.send("// TODO: Backend Homepage...");
       }
       var queryStr = req.url.substr(opts.backend.route.length+1).split("/");
-      var action = queryStr[0];
-      var elemId = queryStr[1];
       
-      switch (action.toLowerCase()) {
-        case "create": // create an element has this structure /create/:elementName
-          
-          console.log("// TODO: make backend create functions");
-          return res.send("CREATOR...\nLooking for a creator for "+elemId);
-          break;
+      var modelName = queryStr[0];
+      var action = queryStr[1]; // is viewName
+      var elemId = queryStr[2];
+      
+      var Model;
+      
+      //return res.send({model:modelName, action:action, id:elemId, view: viewName});
+      
+      if(!(modelName in cms.store.models)) return res.send("// TODO: Unknown model...");
+      
+      Model = cms.store.models[modelName];
+      
+      if(action === "create") {
+        return res.send("// TODO: create and list page");
+      } else if(action === "list") {
+        return Model.find({}, function(err, data){return res.send(data);});
+      } else {
+        if(!("views" in Model) || !(action in Model.views)) return res.send("// TODO: unhandeled view");
+        var view = Model.views[action];
         
-        
-        default:
-          return self.ContentElement.get(elemId, function(err, elem){
+        if(/^[0-9a-f]{24}$/.test(elemId)) {
+          Model.findById(elemId, function(err, data){
             if(err) return next(err);
-console.log("XXXXXXX", action, "--", elem.backend);
-            if(elem && elem.backend[action]) {
-              elem.renderBackend(action, function(err, body){
-                if(err) return next(err);
-                if(!body) return res.send("// TODO: maybe handle no body...");
-                var head = {"Content-Type": elem.getBackendContentType(action)};
-                var xss = elem.getBackendAccessControlAllowOrigin(action);
-                if(xss) head["Access-Control-Allow-Origin"] = xss;
-                res.writeHead(200, head);
-                res.end(body);
-              });
-            }
-            else next();
-        
+            view(data)(req, res, next);
           });
+          return;
+        }
+        else if(elemId.split(":").length>1){
+          var query = {};
+          var arr = elemId.split(",");
+          var i, tmp;
+          for (i=0; i<arr.length; i++) {
+            tmp = arr[i].split(":");
+            query[unescape(tmp[0])] = unescape(tmp[1]);
+          }
+          
+          Model.findOne(query, function(err, data){
+            if(err) return next(err);
+            view(data)(req, res, next);
+          })
+          return;
+        }
       }
-      return next();
+      console.log("Unahndled backend call", req);
+      return res.send("//TODO Unreachable Backend URL!"); // return next(new Error(""));???
     }
     
-    // mayby a vanity url
+// mayby a vanity url
+    
+/*
     var url = req.url;
     if(url.substr(-1)=== "/") url = url.substr(0, url.length-1);
     var tmp = {};
@@ -123,6 +93,36 @@ console.log("XXXXXXX", action, "--", elem.backend);
         }
       }
       return next(); // should normally called never, only with wrong defines contentElements
-    });
+    });//*/
+  
+// Frontend
+
+/*
+    if(req.url.substr(0, opts.route.length) === opts.route) { // is in cms path
+      var queryStr = req.url.substr(opts.route.length+1);
+      queryStr = queryStr.split("/");
+      var elemId = queryStr[0];
+      var view = queryStr[1];
+      self.ContentElement.get(elemId, function(err, elem){
+        if(err) return next(err);
+        if(elem && elem.views[view]) {
+          var ct = elem.getContentType(view);
+          elem.render(view, function(err, body){
+            if (err) return next(err);
+            if(elem.data.resource.caching && ct === "text/html") { // TODO: add possibility to cache other resources then html
+              cms.cache.cache(req.url+"/index.html", body);
+              if(elem.data.resource.cachingTtl) cms.cache.ttl(req.url, elem.data.resource.cachingTtl);
+              delOnChange(elem._id, req.url+"/index.html");
+            }
+            var head = {"Content-Type": ct};
+            var xss = elem.getAccessControlAllowOrigin(view);
+            if(xss) head["Access-Control-Allow-Origin"] = xss;
+            res.writeHead(200, head);
+            res.end(body);
+          });
+        }
+        else next();
+      });
+    } //*/
   };
 }

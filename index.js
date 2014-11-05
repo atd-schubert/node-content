@@ -3,15 +3,27 @@
 // var noody = require("noody");
 var EventEmitter = require("events").EventEmitter;
 var util = require("util");
-var contentManagement = require("./contentManagement");
+var ContentManagement = require("./contentManagement");
 var Cache = require("static-cache");
 var ServeAssets = require("serve-assets");
 var Manifest = require("manifest-manager");
 var I18n = require("i18n");
 var Sitemap = require("./sitemap");
-var Noody = require("noody");
+//var Noody = require("noody");
+var mongoose = require("mongoose");
 
-
+var connectDB = function(path) {
+  if(mongoose.connection._readyState!==0) {
+    console.error("There is already a connection...");
+    console.log(mongoose.connection);
+    return mongoose;
+  }
+  mongoose.connect(path);
+  mongoose.connection.once("open", function(){
+    console.log("Connection to db '"+path+"' established...");
+  });
+  return mongoose;
+};
 
 var NodeContentManagement = function NodeContent(opts){
   EventEmitter.call(this);
@@ -55,22 +67,24 @@ var NodeContentManagement = function NodeContent(opts){
   opts.i18n.directory = opts.i18n.directory || process.cwd()+"/i18n";
   I18n.configure(opts.i18n);
   
-  opts.store = opts.store || {};
-  if(!opts.store.mongoose) {
-    opts.store.mongoose = require("mongoose");
-    opts.store.mongoose.connect('mongodb://localhost/cms');
-  }
-  opts.store.modelName = opts.store.modelName || "cmsstore";
+  if(!opts.store) opts.store = connectDB('mongodb://localhost/cms');
+  if(typeof opts.store === "string") opts.store = connectDB(opts.store);
+  //opts.store.modelName = opts.store.modelName || "cmsstore";
   
   opts.contentManagement = opts.contentManagement || {};
-  opts.contentManagement.route = opts.contentManagement.route || "/cms";
+  
+  opts.contentManagement.frontend = opts.contentManagement.frontend || {};
+  opts.contentManagement.frontend.route = opts.contentManagement.frontend.route || "/cms";
   
   opts.contentManagement.backend = opts.contentManagement.backend || {};
   opts.contentManagement.backend.route = opts.contentManagement.backend.route || "/backend";
   opts.contentManagement.cms = this;
   
-  this.store = new Noody({store: new Noody.Stores.mongoose(opts.store)});
-  this.contentManagement = new contentManagement(opts.contentManagement);
+  //this.store = new Noody({store: new Noody.Stores.mongoose(opts.store)});
+  this.store = opts.store;
+  
+  this.contentManagement = new ContentManagement(opts.contentManagement);
+
   this.i18n = I18n;
   this.sitemap = new Sitemap(opts.sitemap);
   this.manifest = new Manifest(opts.manifest);
@@ -103,7 +117,7 @@ var NodeContentManagement = function NodeContent(opts){
               self.sitemap.middleware(req, res, function(err){
     console.log(7);
                 if(err) return next(err);
-                // backend
+                // backend is included in contentManagement!
                 next();
               }); // sitemap
             }); // manifest
@@ -112,19 +126,8 @@ var NodeContentManagement = function NodeContent(opts){
       }); // cache
     }); // i18n
   };
-  
-  this.getContentElement = function(_id, cb){
-    self.contentManagement.ContentElement.get(_id, cb);
-  };
-  this.findOneContentElement = function(query, cb){
-    self.contentManagement.ContentElement.findOne(query, cb);
-  };
 };
 
-NodeContentManagement.Schema = contentManagement.Schema;
-NodeContentManagement.View = contentManagement.View;
-NodeContentManagement.Model = contentManagement.Model;
-//NodeContentManagement.ContentElement = contentManagement.ContentElement;
 
 util.inherits(NodeContentManagement, EventEmitter);
 

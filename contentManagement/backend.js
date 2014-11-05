@@ -1,6 +1,5 @@
 "use strict";
 
-
 module.exports = function Backend(opts){
   opts.route
   var isBackendRoute = function(route){

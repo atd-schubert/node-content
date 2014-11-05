@@ -17,8 +17,22 @@ app.get('/', function (req, res) {
   res.send(content);
 });
 
-/* CMS parts*/
+/* CMS parts */
 
+
+var Resource = require("./extentions/resource")(cms);
+
+
+var r = new Resource({
+  alt: "Erster Link",
+  contentType: "text/plain",
+  src: "test.js",
+  filename: "test.txt",
+  tags: ["index", "js", "javascript"]
+});
+
+
+/*
 var placeViews = {
   jqmLi: new cms.contentManagement.View({
     templatePath: __dirname+"/templates/place/li.jade",
@@ -75,6 +89,9 @@ var ce = placeModel.createContentElement({
   });
 });
 
-app.listen(3000);
+*/
 
-module.exports = {app: app, cms:cms, model:placeModel};
+
+app.listen(2040);
+
+module.exports = cms; //{cms:cms, r:r};
