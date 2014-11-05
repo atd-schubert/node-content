@@ -29,3 +29,4 @@ node_modules
 
 assets/
 cache/
+dbdump/
