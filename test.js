@@ -20,23 +20,23 @@ app.get('/', function (req, res) {
 
 /* CMS parts */
 
-var frontend = require("./extentions/frontend")(cms);
+var frontend = require("./extensions/frontend")(cms);
 frontend.install();
 frontend.activate();
 
-var backend = require("./extentions/backend")(cms);
+var backend = require("./extensions/backend")(cms);
 backend.install();
 backend.activate();
 
-var jsch = require("./extentions/jschEditor")(cms);
+var jsch = require("./extensions/jschEditor")(cms);
 jsch.install();
 jsch.activate();
 
-var vanityUrl = require("./extentions/vanityUrl")(cms);
+var vanityUrl = require("./extensions/vanityUrl")(cms);
 vanityUrl.install();
 vanityUrl.activate();
 
-var resource = require("./extentions/resource")(cms);
+var resource = require("./extensions/resource")(cms);
 resource.install();
 resource.activate();
 
