@@ -32,6 +32,7 @@
     "jade": "^1.5.0",
     "manifest-manager": "0.0.1",
     "mongoose": "^3.8.18",
+    "request": "^2.47.0",
     "serve-assets": "0.0.1",
     "sitemap": "^0.7.3",
     "static-cache": "0.0.0"

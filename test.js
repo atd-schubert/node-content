@@ -2,10 +2,11 @@
 
 var CMS = require("./index.js");
 
-var cms = new CMS({sitemap:{hostname:"http://atd-schubert.com"}});
 
 var express = require('express');
 var app = express();
+
+var cms = new CMS({server:{port: "3000"}, sitemap:{hostname:"http://atd-schubert.com"}, request:{fn:app}});
 
 app.use(require('compression')());
 app.use(cms.middleware);
@@ -19,17 +20,27 @@ app.get('/', function (req, res) {
 
 /* CMS parts */
 
+var frontend = require("./extentions/frontend")(cms);
+frontend.install();
+frontend.activate();
 
-var Resource = require("./extentions/resource")(cms);
+var backend = require("./extentions/backend")(cms);
+backend.install();
+backend.activate();
+
+var jsch = require("./extentions/jschEditor")(cms);
+jsch.install();
+jsch.activate();
+
+var vanityUrl = require("./extentions/vanityUrl")(cms);
+vanityUrl.install();
+vanityUrl.activate();
+
+var resource = require("./extentions/resource")(cms);
+resource.install();
+resource.activate();
 
 
-var r = new Resource({
-  alt: "Erster Link",
-  contentType: "text/plain",
-  src: "test.js",
-  filename: "test.txt",
-  tags: ["index", "js", "javascript"]
-});
 
 
 /*
@@ -92,6 +103,6 @@ var ce = placeModel.createContentElement({
 */
 
 
-app.listen(2040);
+app.listen(3000);
 
 module.exports = cms; //{cms:cms, r:r};
