@@ -34,7 +34,8 @@ jsch.activate();
 
 var vanityUrl = require("./extensions/vanityUrl")(cms);
 vanityUrl.install();
-// TODO: errer with next!  vanityUrl.activate();
+// TODO: errer with next!  
+vanityUrl.activate();
 
 var resource = require("./extensions/resource")(cms);
 resource.install();

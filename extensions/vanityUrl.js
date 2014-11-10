@@ -33,7 +33,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
 		    if(err) return next(err);
 		    mw(req, res, next);
 	    });
-    });	  
+    });
   };
   
   var ext = cms.createExtension({package: {name: "vanityUrl"}});
@@ -95,11 +95,11 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
 	      if(strict) return cb(new Error("Can not find vanityUrl"));
 	      
 	  		if(url.substr(-1)==="/") {
-				  model.findOne({url: url.substr(0, url.length-1)}, function(err, doc){
+				  return model.findOne({url: url.substr(0, url.length-1)}, function(err, doc){
 					  if(!doc) return cb(new Error("Can not find vanityUrl"));
 				  });
 			  } else {
-				  model.findOne({url: url+"/"}, function(err, doc){
+				  return model.findOne({url: url+"/"}, function(err, doc){
 					  if(!doc) return cb(new Error("Can not find vanityUrl"));
 				  });
 			  }
