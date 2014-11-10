@@ -1,0 +1,12 @@
+extends layout
+
+block navigation
+  header#top.navbar.navbar-default.navbar-static-top.navbar-inverse(role="navigation")
+    .container!= navigation
+  
+block content
+  .container!= content
+  
+if additionalScripts
+  block additionalScripts
+    div!= additionalScripts

@@ -26,8 +26,9 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   
   var router = function(req, res, next){
     ext.getByUrl(req.url, function(err, doc){
-	    if(err==="Can not find vanityUrl" || !doc) return next();
+	    if(err === "Can not find vanityUrl" || !doc) return next();
 	    if(err) return next(err);
+	    
 	    cms.getContent(doc.model, doc.view, doc.query, function(err, mw){
 		    if(err) return next(err);
 		    mw(req, res, next);

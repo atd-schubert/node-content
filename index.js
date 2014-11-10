@@ -3,11 +3,11 @@
 var EventEmitter = require("events").EventEmitter;
 var util = require("util");
 //var ContentManagement = require("./contentManagement");
-var Cache = require("static-cache");
-var ServeAssets = require("serve-assets");
-var Manifest = require("manifest-manager");
+//var Cache = require("static-cache");
+//var ServeAssets = require("serve-assets");
+//var Manifest = require("manifest-manager");
 var I18n = require("i18n");
-var Sitemap = require("./sitemap");
+//var Sitemap = require("./sitemap");
 var mongoose = require("mongoose");
 var request = require("request");
 
@@ -72,7 +72,7 @@ var NodeContentManagement = function NodeContent(opts){
   opts.manifest.route = opts.manifest.route || "/manifest";
   if(typeof opts.manifest.persistent !== "boolean") opts.manifest.persistent = true;
   
-  this.cache = new Cache(opts.cache); // TODO: has to have this line at this place??? <--------------------------------------------
+  // this.cache = new Cache(opts.cache); // TODO: has to have this line at this place??? <--------------------------------------------
   
   opts.assets = opts.assets || {};
   opts.assets.cacheFn = function(path,content,cb){self.cache.cache(path,content,cb)};
@@ -119,11 +119,13 @@ var NodeContentManagement = function NodeContent(opts){
     if(!opts) throw new Error("An extension has to have a option parameter");
     if(!opts.package) throw new Error("An extension has to have package informations");
     if(!opts.package.name) throw new Error("An extension has to have a name");
-    
-    if(Extension.extensions[opts.package.name]) throw new Error("An extension has to have a name");
-    
     var name = opts.package.name;
+    
+    if(name.substr(0, 4) === "nce-") name = name.substr(4);
+    
+    if(Extension.extensions[name]) throw new Error("An extension has to have a name");
     Extension.extensions[name] = this;
+    
 	  this.activate = function(){
 		  this.cms.emit("activateExtension", {target: this, args: arguments});
 		  this.cms.emit("activateExtension:"+name, {target: this, args: arguments});
@@ -168,9 +170,9 @@ var NodeContentManagement = function NodeContent(opts){
   //this.contentManagement = new ContentManagement(opts.contentManagement);
 
   this.i18n = I18n;
-  this.sitemap = new Sitemap(opts.sitemap);
-  this.manifest = new Manifest(opts.manifest);
-  this.serveAssets = new ServeAssets(opts.assets);
+  // this.sitemap = new Sitemap(opts.sitemap);
+  // this.manifest = new Manifest(opts.manifest);
+  // this.serveAssets = new ServeAssets(opts.assets);
   
   this.requestMiddlewares = [];
   

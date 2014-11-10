@@ -1,0 +1,30 @@
+mixin entry(data)
+  if data.submenu
+    li.dropdown
+      a.dropdown-toggle(href='#', data-toggle='dropdown')= data.caption
+          span.caret
+        ul.dropdown-menu(role='menu')
+          - for(n=0; n<data.submenu.length; n++)
+            +entry(data.submenu[n])
+  else
+    if data.href
+      li
+        a(href=data.href)= data.caption
+    else if data.divider
+      li.divider
+    else
+      li data.caption
+  
+
+//- .nav.navbar-header
+  a(href="/") Data-import
+ul.nav.navbar-nav
+  - for(i=0; i<menu.length; i++)
+    +entry(menu[i])
+//-
+  li
+    a(href="/backend/jschEditor") Edit Content
+  li
+    a(href="/backend/user") User management
+  li
+    a(href="/backend/logout") Logout

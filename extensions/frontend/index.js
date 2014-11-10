@@ -37,11 +37,12 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
 	  
   };
   
-  var ext = cms.createExtension({package: {name: "frontend"}});
+  var ext = cms.createExtension({package: require("./package.json")});
   
   ext.on("install", function(event){
     cms.config.frontend = cms.config.frontend || {};
     cms.config.frontend.route = cms.config.frontend.route || "/cms";
+    ext.config = cms.config.frontend;
   });
   ext.on("uninstall", function(event){
     ext.deactivate();

@@ -1,0 +1,27 @@
+- if(!lang) lang="en";
+- if(!title) title="Unnamed backend page";
+doctype html
+html(lang=lang)
+  head
+    block head
+      meta(charset="utf-8")
+      title= title
+      link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css")
+      
+      script(src="http://code.jquery.com/jquery-2.1.1.min.js")
+      script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js")
+      
+  body
+    block navigation    
+      header#top.navbar.navbar-default.navbar-static-top.navbar-inverse(role="navigation")
+        .container
+          // .nav.navbar-header
+            a(href="/") Data-import
+          ul.nav.navbar-nav
+            block navigation
+              li
+                a(href="/login") login
+    block content
+      .container
+        p Content goes here...
+    block additionalScripts

@@ -1,22 +1,26 @@
 "use strict";
 
+var jade = require("jade");
+
 module.exports = function(cms, opts){ // TODO: maybe don't use opts at this place, use install args instead...
   if(!cms) throw new Error("You have to specify the cms object");
   
   var backendRouter = function(req, res, next){
 	  if(req.url === cms.config.backend.route || req.url === cms.config.backend.route+"/") {
-	    res.end('<html><body>'+ext.buildNavigation()+'<div>Content goes here</div></body></html>');
+		  
+	    res.end(ext.renderPage({title: "Welcome to the NC backend", content: jade.renderFile(__dirname+"/views/root.jade", {})}));
 	  } else {
 		  next();
 	  }
 	  
   };
   
-  var ext = cms.createExtension({package: {name: "backend"}});
+  var ext = cms.createExtension({package: require("./package.json")});
   
   ext.on("install", function(event){
     cms.config.backend = cms.config.backend || {};
     cms.config.backend.route = cms.config.backend.route || "/backend";
+    ext.config = cms.config.backend;
   });
   ext.on("uninstall", function(event){
     ext.deactivate();
@@ -39,35 +43,17 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   
   ext.middleware = backendRouter;
   
-  var menu = {};
-  
   ext.buildNavigation = function(){ // TODO: ...
-	  return '<ul><li>This</li><li>is</li><li>a</li><li>test</li></ul>'
+	  var menu = [{caption:"Backend", href:ext.config.route}];
+	  ext.emit("buildNavigation", menu);
+	  
+	  return jade.renderFile(__dirname+"/views/navigation.jade", {menu: menu});
   };
   ext.renderPage = function(content){ // TODO: ...
-    var html = "";
-	  // skeleton
-	  // navigation
-	  
-	  // include content
-	  return html;
+	  content.navigation = content.navigation || ext.buildNavigation();
+	  content.title = content.title || "Unnamed backend page"
+	  return jade.renderFile(__dirname+"/views/page.jade", content);
   };
-  ext.addNavigation = function(entry){
-    var hash;
-	  for (hash in entry) {
-		  if(hash in menu) {
-			  
-		  } else {
-			  menu[hash] = entry[hash];
-		  }
-	  }
-  };
-  ext.removeNavigation = function(entry){ // TODO: this should proof if there is any entry left, if not delete the whole entry
-    var hash;
-    for (hash in entry) {
-	    delete menu[hash]; // TODO: this is the simple way, but add proofs like describes above...
-    }
-  };
-  
+  ext.install();
   return ext;
 }

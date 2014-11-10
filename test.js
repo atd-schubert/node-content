@@ -25,7 +25,7 @@ frontend.install();
 frontend.activate();
 
 var backend = require("./extensions/backend")(cms);
-backend.install();
+// backend.install();
 backend.activate();
 
 var jsch = require("./extensions/jschEditor")(cms);
@@ -34,7 +34,7 @@ jsch.activate();
 
 var vanityUrl = require("./extensions/vanityUrl")(cms);
 vanityUrl.install();
-vanityUrl.activate();
+// TODO: errer with next!  vanityUrl.activate();
 
 var resource = require("./extensions/resource")(cms);
 resource.install();

@@ -1,0 +1,35 @@
+{
+  "name": "nce-resource",
+  "version": "0.0.0",
+  "description": "THe resource manager for the nc cms",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atd-schubert/nc-resource.git"
+  },
+  "keywords": [
+    "cms",
+    "nc",
+    "middleware",
+    "assets"
+  ],
+  "author": "Arne Schubert <atd.schubert@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/atd-schubert/nc-resource/issues"
+  },
+  "homepage": "https://github.com/atd-schubert/nc-resource",
+  "dependencies": {
+    "body-parser": "^1.9.2",
+    "busboy": "^0.2.9",
+    "jade": "^1.5.0",
+    "mime": "^1.2.11"
+  },
+  "devDependencies": {},
+  "peerDependencies": {
+    "nc-backend": "0.0.0"
+  }
+}
