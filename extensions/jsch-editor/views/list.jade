@@ -1,0 +1,10 @@
+p Please specify a model you want to edit:
+
+h3 Models
+
+ul
+  if(models.length===0)
+    li No models found
+  - for(var i=0; i<models.length; i++)
+    li
+      a(href=rootUrl+"/"+models[i])=models[i]

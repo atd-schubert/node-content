@@ -1,0 +1,9 @@
+.vanityUrl
+  form
+    ul
+      if(docs.length===0)
+        li No vanityUrls...
+      - for (var i=0; i<docs.length; i++)
+      li= docs.url
+    
+    button.btn.btn-default add VanityUrl

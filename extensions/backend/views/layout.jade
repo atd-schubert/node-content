@@ -1,17 +1,5 @@
-- if(!lang) lang="en";
-- if(!title) title="Unnamed backend page";
-doctype html
-html(lang=lang)
-  head
-    block head
-      meta(charset="utf-8")
-      title= title
-      link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css")
-      
-      script(src="http://code.jquery.com/jquery-2.1.1.min.js")
-      script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js")
-      
-  body
+mixin body
+  body(title=title)
     block navigation    
       header#top.navbar.navbar-default.navbar-static-top.navbar-inverse(role="navigation")
         .container
@@ -24,4 +12,26 @@ html(lang=lang)
     block content
       .container
         p Content goes here...
-    block additionalScripts
+    
+
+- if (onlyBody)
+  +body
+      
+- else
+  - if(!lang) lang="en";
+  - if(!title) title="Unnamed backend page";
+  doctype html
+  html(lang=lang)
+    head
+      block head
+        meta(charset="utf-8")
+        title= title
+        link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css")
+        link(rel="stylesheet", href=rootUrl+"/backend/css")
+        
+        script(src="http://code.jquery.com/jquery-2.1.1.min.js")
+        script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js")
+        script(src=rootUrl+"/backend/js")
+        
+        block additionalScripts
+    +body

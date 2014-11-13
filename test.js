@@ -11,13 +11,6 @@ var cms = new CMS({server:{port: "3000"}, sitemap:{hostname:"http://atd-schubert
 app.use(require('compression')());
 app.use(cms.middleware);
 
-app.get('/', function (req, res) {
-  var content = 'Hello World'+Math.random();
-  req.cms.cache.cache("/index.html", content);
-  req.cms.cache.ttl("/index.html", 10000);
-  res.send(content);
-});
-
 /* CMS parts */
 
 var frontend = require("./extensions/frontend")(cms);
@@ -28,19 +21,23 @@ var backend = require("./extensions/backend")(cms);
 // backend.install();
 backend.activate();
 
-var jsch = require("./extensions/jschEditor")(cms);
+var cache = require("./extensions/cache")(cms);
+cache.install();
+cache.activate();
+
+var jsch = require("./extensions/jsch-editor")(cms);
 jsch.install();
 jsch.activate();
 
-var vanityUrl = require("./extensions/vanityUrl")(cms);
+var vanityUrl = require("./extensions/vanity-url")(cms);
 vanityUrl.install();
 // TODO: errer with next!  
 vanityUrl.activate();
 
+
 var resource = require("./extensions/resource")(cms);
 resource.install();
 resource.activate();
-
 
 
 

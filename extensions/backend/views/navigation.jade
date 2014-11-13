@@ -8,12 +8,12 @@ mixin entry(data)
             +entry(data.submenu[n])
   else
     if data.href
-      li
+      li(class=data.class)
         a(href=data.href)= data.caption
     else if data.divider
-      li.divider
+      li(class="divider "+data.class)
     else
-      li data.caption
+      li(class=data.class) data.caption
   
 
 //- .nav.navbar-header

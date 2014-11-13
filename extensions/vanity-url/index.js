@@ -1,6 +1,8 @@
 "use strict";
 
-module.exports = function(cms, opts){ // TODO: maybe don't use opts at this place, use install args instead...
+var jade = require("jade");
+
+module.exports = function(cms){
   if(!cms) throw new Error("You have to specify the cms object");
   
   var schema = new cms.store.Schema({
@@ -26,7 +28,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   
   var router = function(req, res, next){
     ext.getByUrl(req.url, function(err, doc){
-	    if(err === "Can not find vanityUrl" || !doc) return next();
+	    if(err && err.message === "Can not find vanityUrl" || !doc) return next();
 	    if(err) return next(err);
 	    
 	    cms.getContent(doc.model, doc.view, doc.query, function(err, mw){
@@ -36,12 +38,13 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     });
   };
   
-  var ext = cms.createExtension({package: {name: "vanityUrl"}});
+  var ext = cms.createExtension({package: require("./package.json")});
   
   ext.on("install", function(event){
     cms.config.vanityUrl = cms.config.vanityUrl || {};
     cms.config.vanityUrl.modelName = cms.config.vanityUrl.modelName || "vanityUrl";
     model = cms.store.model(cms.config.vanityUrl.modelName, schema);
+    model.displayColumns = ["url", "model", "view", "query"];
   });
   ext.on("uninstall", function(event){
     ext.deactivate();
@@ -106,6 +109,15 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
 			}
 			cb(null, doc);
 	  });
+  };
+  ext.query = function(query, cb){
+    model.find(query, cb);
+  };
+  ext.renderVanityUrlLists = function(query, opts, cb){
+    ext.query(query, function(err, docs){
+      if(err) return cb(err);
+      cb(null, jade.renderFile(__dirname+"/views/list.jade", {docs:docs, opts:opts}));
+    });
   };
   
   ext.model = model;

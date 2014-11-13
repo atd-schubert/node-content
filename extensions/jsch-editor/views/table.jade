@@ -1,0 +1,15 @@
+- var cols = model.displayColumns || ["_id"];
+.jschEditor
+  table.table.jschEditor-entrys
+    tbody
+      tr
+        - for (var n=0; n<cols.length; n++)
+          th= cols[n]
+      if(!docs.length)
+        tr
+          td(colspan=cols.length) No entrys...
+      - for(var i=0; i<docs.length; i++)
+        tr.clickable.ajaxBody(href=rootUrl+"/"+docs[i]._id)
+          - for (var n=0; n<cols.length; n++)
+            td= docs[i][cols[n]]
+  button.btn.btn-default.clickable.ajaxBody(href=rootUrl+"/create") create Entry
