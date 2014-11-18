@@ -1,14 +1,14 @@
 {
   "name": "nce-frontend",
   "version": "0.0.0",
-  "description": "A frontend module for the nc cms",
+  "description": "A frontend / content delivery module for the nc cms",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/atd-schubert/nc-frontend.git"
+    "url": "https://github.com/atd-schubert/nce-frontend.git"
   },
   "keywords": [
     "cms",
@@ -19,14 +19,14 @@
   "author": "Arne Schubert <atd.schubert@gmail.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/atd-schubert/nc-frontend/issues"
+    "url": "https://github.com/atd-schubert/nce-frontend/issues"
   },
-  "homepage": "https://github.com/atd-schubert/nc-frontend",
+  "homepage": "https://github.com/atd-schubert/nce-frontend",
   "dependencies": {
   },
   "devDependencies": {
   },
   "peerDependencies": {
-	  "nc-backend": "0.0.0"
+	  "nce-backend": "0.0.0"
   }
 }

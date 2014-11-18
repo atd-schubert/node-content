@@ -1,19 +1,19 @@
 h1 Edit a resource
-
-form(action=url, method="POST", enctype="multipart/form-data")
-  .input-group
-    span.input-group-addon Pick a file:
-    input#file.form-control(type="file", name="file", placeholder="Specify a file")
-  .input-group
-    span.input-group-addon Description:
-    input#descr.form-control(type="text", name="alt", placeholder="Description")
-  .input-group
-    span.input-group-addon Tags:
-    input#tags.form-control(type="text", name="tags", placeholder="Comma separated tags")
-  .input-group
-    span.input-group-addon Filename:
-    input#filename.form-control(type="text", name="filename", disabled="", placeholder="Filename to save as")
-  .input-group
-    span.input-group-addon Content-Type:
-    input#mimetype.form-control(type="text", name="mimetype", disabled="", placeholder="Content-Type")
-  input.btn.default-btn(type="submit", value="Upload / Set")
+.nce-resource
+  form(action=url, method="POST", enctype="multipart/form-data")
+    .input-group
+      span.input-group-addon Pick a file:
+      input#file.form-control(type="file", name="file", placeholder="Specify a file")
+    .input-group
+      span.input-group-addon Description:
+      input#descr.form-control(type="text", name="alt", placeholder="Description")
+    .input-group
+      span.input-group-addon Tags:
+      input#tags.form-control(type="text", name="tags", placeholder="Comma separated tags")
+    .input-group.autoEnable
+      span.input-group-addon Filename:
+      input#filename.form-control.autoEnable(type="text", name="filename", disabled="", placeholder="Filename to save as")
+    .input-group.autoEnable
+      span.input-group-addon Content-Type:
+      input#mimetype.form-control.autoEnable(type="text", name="mimetype", disabled="", placeholder="Content-Type")
+    input.btn.default-btn(type="submit", value="Upload / Set")

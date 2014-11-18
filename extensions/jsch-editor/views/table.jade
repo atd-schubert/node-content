@@ -1,6 +1,6 @@
 - var cols = model.displayColumns || ["_id"];
-.jschEditor
-  table.table.jschEditor-entrys
+.jsch-editor
+  table.table.jsch-editor-entrys
     tbody
       tr
         - for (var n=0; n<cols.length; n++)
@@ -12,4 +12,4 @@
         tr.clickable.ajaxBody(href=rootUrl+"/"+docs[i]._id)
           - for (var n=0; n<cols.length; n++)
             td= docs[i][cols[n]]
-  button.btn.btn-default.clickable.ajaxBody(href=rootUrl+"/create") create Entry
+  a.btn.btn-default.ajaxBody(href=rootUrl+"/create") create Entry

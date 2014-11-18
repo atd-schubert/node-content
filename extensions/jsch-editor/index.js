@@ -17,28 +17,31 @@ module.exports = function(cms){
   
   var buildNavigation = function(menu){
     var backendRoute = cms.getExtension("backend").config.route;
+    var store = cms.getExtension("mongoose-store");
     var hash;
     var submenu = [];
-    for(hash in cms.store.models) {
-      if(cms.config.noticeAll || !ignored[hash]) submenu.push({class:"ajaxBody", caption:hash, href:backendRoute+ext.config.subRoute+"/"+hash});
+    for(hash in store.getStore().models) {
+      if(ext.config.noticeAll || !ignored[hash]) submenu.push({class:"ajaxBody", caption:hash, href:backendRoute+ext.config.subRoute+"/"+hash});
     }
-    
     menu.push({caption:"Edit Content", submenu: submenu});
   };
   
   var router = function(req, res, next){
-    if(req.url.substr(0, cms.config.backend.route.length+cms.config.jschEditor.subRoute.length) === cms.config.backend.route+cms.config.jschEditor.subRoute) {
-      var arr = req.url.split("?")[0].substr(cms.config.backend.route.length+cms.config.jschEditor.subRoute.length+1).split("/");
+    var backend = cms.getExtension("backend");
+    var store = cms.getExtension("mongoose-store");
+    
+    if(req.url.substr(0, backend.config.route.length+ext.config.subRoute.length) === backend.config.route+ext.config.subRoute) {
+      var arr = req.url.split("?")[0].substr(backend.config.route.length+ext.config.subRoute.length+1).split("/");
       
-      var backend = cms.getExtension("backend");
+      
       
       if(arr.length===1 && arr[0]=== "") { // Overview
         var models = [];
         var hash;
-        for (hash in cms.store.models) models.push(hash);
+        for (hash in store.getStore().models) models.push(hash);
         
         var content = jade.renderFile(__dirname+"/views/list.jade", {
-          rootUrl: cms.config.backend.route+cms.config.jschEditor.subRoute,
+          rootUrl: backend.config.route+ext.config.subRoute,
           models:models
         });
         
@@ -50,14 +53,14 @@ module.exports = function(cms){
       }
       
       if(arr.length===1 || arr[1].length===0) {// list entries
-        var model = cms.store.models[arr[0]]
+        var model = store.getModel(arr[0]);
         if(!model) return next();
         
         return model.find({}, function(err, docs){
           var content = jade.renderFile(__dirname+"/views/table.jade", {
             model: model,
             docs: docs,
-            rootUrl: cms.config.backend.route+cms.config.jschEditor.subRoute+"/"+arr[0]
+            rootUrl: backend.config.route+ext.config.subRoute+"/"+arr[0]
           });
           
           return res.end(backend.renderPage({
@@ -82,15 +85,12 @@ module.exports = function(cms){
   var ext = cms.createExtension({package: {name: "jschEditor"}});
   
   ext.on("install", function(event){
-    cms.config.jschEditor = cms.config.jschEditor || {};
-    cms.config.jschEditor.subRoute = cms.config.jschEditor.subRoute || "/jschEditor";
-    cms.config.jschEditor.noticeAll = cms.config.jschEditor.noticeAll || false;
-    ext.config = cms.config.jschEditor
+    ext.config.subRoute = ext.config.subRoute || "/jschEditor";
+    ext.config.noticeAll = ext.config.noticeAll || false;
     
   });
   ext.on("uninstall", function(event){
-    ext.deactivate();
-    if(event.args && event.args.all) delete cms.config.backend;
+    
   });
   
   ext.on("activate", function(event){

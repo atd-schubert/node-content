@@ -21,16 +21,13 @@ module.exports = function(cms){
   var ext = cms.createExtension({package: require("./package.json")});
   
   ext.on("install", function(event){
-    cms.config.dummy = cms.config.dummy || {};
-    cms.config.dummy.route = cms.config.dummy.route || "/dummy";
-    cms.config.dummy.modelName = cms.config.dummy.modelName || "dummy";
-    ext.config = cms.config.dummy;
+    ext.config.route = ext.config.route || "/dummy";
+    ext.config.modelName = ext.config.modelName || "dummy";
     
     model = cms.store.model(ext.config.modelName, schema);
   });
   ext.on("uninstall", function(event){
-    ext.deactivate();
-    if(event.args && event.args.all) delete cms.config.dummy;
+    
   });
   
   ext.on("activate", function(event){

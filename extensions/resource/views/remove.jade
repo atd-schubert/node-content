@@ -1,23 +1,23 @@
 h1 Remove a resource
 
 h2 Do you really want to remove this Resource?
-
-form(action=baseUrl+"remove/"+entry._id, method="POST", enctype="multipart/form-data")
-  input(type="hidden", name="id", value=entry._id)
-  .input-group
-    span.input-group-addon Resource Id:
-    .form-control.disabled= entry._id
-  .input-group
-    span.input-group-addon Description:
-    input#descr.form-control(type="text", name="alt", disabled="", placeholder="Description", value=entry.alt)
-  .input-group
-    span.input-group-addon Tags:
-    - var tags = entry.tags.join(", ");
-    input#tags.form-control(type="text", name="tags", disabled="", placeholder="Comma separated tags", value=tags)
-  .input-group
-    span.input-group-addon Filename:
-    input#filename.form-control(type="text", name="filename", disabled="", placeholder="Filename to save as", value=entry.filename)
-  .input-group
-    span.input-group-addon Content-Type:
-    input#mimetype.form-control(type="text", name="mimetype", disabled="", placeholder="Content-Type", value=entry.mimetype)
-  input.btn.btn-danger(type="submit", value="Remove")
+.nce-resource
+  form(action=baseUrl+"remove/"+entry._id, method="POST", enctype="multipart/form-data")
+    input(type="hidden", name="id", value=entry._id)
+    .input-group
+      span.input-group-addon Resource Id:
+      .form-control.disabled= entry._id
+    .input-group
+      span.input-group-addon Description:
+      input#descr.form-control(type="text", name="alt", disabled="", placeholder="Description", value=entry.alt)
+    .input-group
+      span.input-group-addon Tags:
+      - var tags = entry.tags.join(", ");
+      input#tags.form-control.autoEnable(type="text", name="tags", disabled="", placeholder="Comma separated tags", value=tags)
+    .input-group.autoEnable
+      span.input-group-addon Filename:
+      input#filename.form-control.autoEnable(type="text", name="filename", disabled="", placeholder="Filename to save as", value=entry.filename)
+    .input-group.autoEnable
+      span.input-group-addon Content-Type:
+      input#mimetype.form-control.autoEnable(type="text", name="mimetype", disabled="", placeholder="Content-Type", value=entry.mimetype)
+    input.btn.btn-danger(type="submit", value="Remove")

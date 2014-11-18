@@ -1,22 +1,22 @@
 h1 Edit a resource
-
-form(action=baseUrl+"edit/"+entry._id, method="POST", enctype="application/x-www-form-urlencoded")
-  input(type="hidden", name="id", value=entry._id)
-  .input-group
-    span.input-group-addon Resource Id:
-    .form-control.disabled= entry._id
-  .input-group
-    span.input-group-addon Description:
-    input#descr.form-control(type="text", name="alt", placeholder="Description", value=entry.alt)
-  .input-group
-    span.input-group-addon Tags:
-    - var tags = entry.tags.join(", ");
-    input#tags.form-control(type="text", name="tags", placeholder="Comma separated tags", value=tags)
-  .input-group
-    span.input-group-addon Filename:
-    input#filename.form-control(type="text", name="filename", disabled="", placeholder="Filename to save as", value=entry.filename)
-  .input-group
-    span.input-group-addon Content-Type:
-    input#mimetype.form-control(type="text", name="mimetype", disabled="", placeholder="Content-Type", value=entry.mimetype)
-  input.btn.btn-warning(type="submit", value="Update")
-  button.btn.btn-danger(data-href=baseUrl+"remove/"+entry._id) Remove resource
+.nce-resource
+  form(action=baseUrl+"edit/"+entry._id, method="POST", enctype="application/x-www-form-urlencoded")
+    input(type="hidden", name="id", value=entry._id)
+    .input-group
+      span.input-group-addon Resource Id:
+      .form-control.disabled= entry._id
+    .input-group
+      span.input-group-addon Description:
+      input#descr.form-control(type="text", name="alt", placeholder="Description", value=entry.alt)
+    .input-group
+      span.input-group-addon Tags:
+      - var tags = entry.tags.join(", ");
+      input#tags.form-control(type="text", name="tags", placeholder="Comma separated tags", value=tags)
+    .input-group.autoEnable
+      span.input-group-addon Filename:
+      input#filename.form-control.autoEnable(type="text", name="filename", disabled="", placeholder="Filename to save as", value=entry.filename)
+    .input-group.autoEnable
+      span.input-group-addon Content-Type:
+      input#mimetype.form-control.autoEnable(type="text", name="mimetype", disabled="", placeholder="Content-Type", value=entry.mimetype)
+    input.btn.btn-warning(type="submit", value="Update")
+    button.clickable.btn.btn-danger(data-href=baseUrl+"remove/"+entry._id) Remove resource

@@ -8,4 +8,5 @@
 	
 	Des weiteren können Apps auch jsonschemas anbieten um Startoptionen festzulegen.
 	
+	Erst alle pakete installieren erst nach process.nextTick aktivieren
 */

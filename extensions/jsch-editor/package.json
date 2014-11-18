@@ -1,14 +1,14 @@
 {
   "name": "nce-jsch-editor",
   "version": "0.0.0",
-  "description": "Content editor for the nc cms",
+  "description": "Basic content editor for the nc cms",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/atd-schubert/nc-jsch-editor.git"
+    "url": "https://github.com/atd-schubert/nce-jsch-editor.git"
   },
   "keywords": [
     "cms",
@@ -19,15 +19,15 @@
   "author": "Arne Schubert <atd.schubert@gmail.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/atd-schubert/nc-jsch-editor/issues"
+    "url": "https://github.com/atd-schubert/nce-jsch-editor/issues"
   },
-  "homepage": "https://github.com/atd-schubert/nc-jsch-editor",
+  "homepage": "https://github.com/atd-schubert/nce-jsch-editor",
   "dependencies": {
     "body-parser": "^1.9.2",
     "jade": "^1.5.0"
   },
   "devDependencies": {},
   "peerDependencies": {
-    "nc-backend": "0.0.0"
+    "nce-backend": "0.0.0"
   }
 }

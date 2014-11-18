@@ -1,9 +1,51 @@
-.vanityUrl
-  form
-    ul
-      if(docs.length===0)
-        li No vanityUrls...
-      - for (var i=0; i<docs.length; i++)
-      li= docs.url
+- opts = opts || {};
+- opts.cols = opts.cols || ["#", "url", "model", "view", "query", "action"];
+- opts.urls = [];
+- opts.models = opts.models || [];
+- opts.views = opts.views || [];
+- opts.querys = opts.querys || [];
+
+.vanity-url
+  table.vanity-url-entrys(data-models=opts.models, data-views="", data-queries="")
+    thead
+      tr
+        - for (var n=0; n<opts.cols.length; n++)
+          th= opts.cols[n]
     
-    button.btn.btn-default add VanityUrl
+    tbody
+      if(!docs.length)
+        tr
+          td(data-colspan=  opts.cols.length) No entrys...
+      else
+        - for(var i=0; i<docs.length; i++)
+          // form.ajaxStatus(method="POST", action="")
+          tr
+            - for (var n=0; n<  opts.cols.length; n++)
+              - if(opts.cols[n]=== "action")
+                td
+                  input.btn.btn-default.vanity-url-save(disabled, type="button", value="save", data-id=docs[i]._id.toString())
+                  input.btn.btn-danger.vanity-url-remove(type="button", value="remove", data-id=docs[i]._id.toString())
+              
+              - else if(opts.cols[n]=== "#")
+                td= i+1              
+              -else
+                td
+                  - console.log(opts.cols[n]+"s")
+                  - if(opts[opts.cols[n]+"s"].length === 0)
+                    input.form-control(type="text", value=docs[i][opts.cols[n]], name=opts.cols[n], placeholder="Insert "+opts.cols[n]+" here...")
+                  - else if(opts[opts.cols[n]+"s"].length === 1)
+                    input.form-control(disabled, type="text",  value=docs[i][opts.cols[n]], name=opts.cols[n], placeholder="Insert "+opts.cols[n]+" here...")
+                  - else 
+                    .dropdown
+                      input.form-control(name=opts.cols[n] type="hidden", value= docs[i][opts.cols[n]])
+                      button.btn.btn-default.dropdown-toggle(data-toggle="dropdown", id=docs[i]._id, type="button")= docs[i][opts.cols[n]]+" "
+                        span.caret
+                      ul.dropdown-menu(role='menu', aria-labelledby=docs[i]._id)
+                        - for(var m=0; m<opts[opts.cols[n]+"s"].length; m++)
+                          if(opts[opts.cols[n]+"s"][m] === "")
+                            li.divider(role='presentation')
+                          else
+                            li(role='presentation')
+                              a.selectItem(role='menuitem', tabindex='-1')= opts[opts.cols[n]+"s"][m]
+            
+  a.btn.btn-default.vanity-url-create(href="#TODO") create vanityUrl

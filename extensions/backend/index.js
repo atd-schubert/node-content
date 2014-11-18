@@ -2,6 +2,7 @@
 
 var jade = require("jade");
 var fs = require("fs");
+var md5 = require("MD5");
 
 var mkCollector = function(obj, cb){
   var collectorDone = false;
@@ -42,27 +43,40 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   if(!cms) throw new Error("You have to specify the cms object");
   
   var backendRouter = function(req, res, next){
-    var regex = new RegExp("^"+cms.config.backend.route.split("/").join("\\/")+"(\\/?(\\?([\\w\\W]*)?)?)?$");
-    if(regex.test(req.url)){//req.url === cms.config.backend.route || req.url === cms.config.backend.route+"/") {
-      console.log(req.query);
-      
+    var regex = new RegExp("^"+ext.config.route.split("/").join("\\/")+"(\\/?(\\?([\\w\\W]*)?)?)?$");
+    if(regex.test(req.url)){
       return res.end(ext.renderPage({onlyBody: ("onlyBody" in req.query), title: "Welcome to the NC backend", content: jade.renderFile(__dirname+"/views/root.jade", {})}));
-    } else if(req.url === cms.config.backend.route+"/backend/js") {
-      return ext.buildClientJS(function(err, datas){
+    } else if(req.url === ext.config.route+"/backend/js") {
+      return ext.buildClientJS(function(err, data){
         if(err) return next(err);
-        res.writeHead(200, {"Content-Type": "application/javascript"});
-        var i;
-        for (i=0; i<datas.length; i++) {
-          if(typeof datas[i]=== "string") res.write(datas[i]);
-          else res.write(datas[i].toString());
+        data = data.join("\n");
+        
+        var headers = {"Content-Type": "application/javascript", etag:md5(data)}
+        var cache = cms.getExtension("cache");
+        if(cache) {
+          cache.cacheData({headers: headers, data:data, url: ext.config.route+"/backend/js", force:true});
+          cms.once("activate", function(){cache.uncache(ext.config.route+"/backend/js")});
+          cms.once("deactivate", function(){cache.uncache(ext.config.route+"/backend/js")});
         }
-        res.end();
+        
+        res.writeHead(200, headers);
+        res.end(data);
       }, {req: req});
-    } else if(req.url === cms.config.backend.route+"/backend/css") {
+    } else if(req.url === ext.config.route+"/backend/css") {
       return ext.buildClientCSS(function(err, data){
         if(err) return next(err);
-        res.writeHead(200, {"Content-Type": "text/css"});
-        res.end(data.join("\n"));
+        data = data.join("\n");
+        
+        var headers = {"Content-Type": "text/css", etag:md5(data)}
+        var cache = cms.getExtension("cache");
+        if(cache) {
+          cache.cacheData({headers: headers, data:data, url: ext.config.route+"/backend/css", force:true});
+          cms.once("activate", function(){cache.uncache(ext.config.route+"/backend/css")});
+          cms.once("deactivate", function(){cache.uncache(ext.config.route+"/backend/css")});
+        }
+        
+        res.writeHead(200, headers);
+        res.end(data);
       }, {req: req});
     } else {
       next();
@@ -73,13 +87,10 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   var ext = cms.createExtension({package: require("./package.json")});
   
   ext.on("install", function(event){
-    cms.config.backend = cms.config.backend || {};
-    cms.config.backend.route = cms.config.backend.route || "/backend";
-    ext.config = cms.config.backend;
+    ext.config.route = ext.config.route || "/backend";
   });
   ext.on("uninstall", function(event){
-    ext.deactivate();
-    if(event.args && event.args.all) delete cms.config.backend;
+    
   });
   
   ext.on("activate", function(event){
@@ -87,6 +98,13 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     if(cms.requestMiddlewares.indexOf(backendRouter) === -1) {
       cms.requestMiddlewares.push(backendRouter);
     }
+    process.nextTick(function(){
+      var cache = cms.getExtension("cache");
+      if(cache) {
+        cache.uncache(ext.config.route+"/backend/js");
+        cache.uncache(ext.config.route+"/backend/css");
+      }
+    });
   });
   
   ext.on("deactivate", function(event){
@@ -120,11 +138,24 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     if(!cb) throw new Error("You have to specify a callback");
     ext.emit("buildClientCSS", mkCollector(opts, cb));
   };
+  ext.on("buildClientCSS", function(obj){
+    fs.readFile(__dirname+"/assets/style.css", obj.collector());
+  });
+  
+  ext.uncacheAssets = function(){
+    var cache = cms.getExtension("cache");
+    if(!cache) return;
+    cache.uncache(ext.config.route+"/backend/css");
+    cache.uncache(ext.config.route+"/backend/js");
+  };
   
   ext.renderPage = function(content){
+    if(content.onlyStatus) return content.content;
+    
     content.navigation = content.navigation || ext.buildNavigation();
     content.title = content.title || "Unnamed backend page";
     content.onlyBody = content.onlyBody || false;
+    content.onlyStatus = content.onlyStatus || false;
     content.rootUrl = ext.config.route;
     return jade.renderFile(__dirname+"/views/page.jade", content);
   };

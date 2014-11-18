@@ -6,12 +6,16 @@ var CMS = require("./index.js");
 var express = require('express');
 var app = express();
 
-var cms = new CMS({server:{port: "3000"}, sitemap:{hostname:"http://atd-schubert.com"}, request:{fn:app}});
+var cms = new CMS({server:{port: "3000"}, "mongoose-store":{href:"mongodb://localhost/cms"}});
 
 app.use(require('compression')());
 app.use(cms.middleware);
 
 /* CMS parts */
+
+var store = require("./extensions/mongoose-store")(cms);
+store.install();
+store.activate();
 
 var frontend = require("./extensions/frontend")(cms);
 frontend.install();
@@ -30,8 +34,7 @@ jsch.install();
 jsch.activate();
 
 var vanityUrl = require("./extensions/vanity-url")(cms);
-vanityUrl.install();
-// TODO: errer with next!  
+vanityUrl.install();  
 vanityUrl.activate();
 
 

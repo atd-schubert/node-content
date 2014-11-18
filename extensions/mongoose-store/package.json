@@ -1,14 +1,14 @@
 {
-  "name": "nce-vanity-url",
+  "name": "nce-mongoose-store",
   "version": "0.0.0",
-  "description": "A handler for vanity-urls in the nc cms",
+  "description": "The basic document-store for nc cms",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/atd-schubert/nce-vanity-url.git"
+    "url": "https://github.com/atd-schubert/nce-mongoose.git"
   },
   "keywords": [
     "cms",
@@ -19,12 +19,12 @@
   "author": "Arne Schubert <atd.schubert@gmail.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/atd-schubert/nce-vanity-url/issues"
+    "url": "https://github.com/atd-schubert/nce-mongoose/issues"
   },
-  "homepage": "https://github.com/atd-schubert/nce-vanity-url",
+  "homepage": "https://github.com/atd-schubert/nce-mongoose",
   "dependencies": {
-    "body-parser": "^1.9.2",
-    "jade": "^1.5.0"
+    "mongoose": "^3.8.19",
+    "mongoose-eventify": "0.0.2"
   },
   "devDependencies": {},
   "peerDependencies": {

@@ -15,12 +15,30 @@ var bodyParser = require("body-parser");
 module.exports = function(cms, opts){ // TODO: maybe don't use opts at this place, use install args instead...
   if(!cms) throw new Error("You have to specify the cms object");
   
-  var vanitize = (cms.getExtension("vanity-url") && cms.getExtension("vanity-url").renderVanityUrlLists) || function(a,b,c){c(null, "");};
+  var vanitize = function(a,b,c){
+    console.log("VN",b);
+    if(cms.getExtension("vanity-url") && cms.getExtension("vanity-url").renderVanityUrlLists) return cms.getExtension("vanity-url").renderVanityUrlLists(a,b,c);
+    return c(null, "");
+  };
+  
+  var clientCSS = function(obj){
+    fs.readFile(__dirname+"/assets/style.css", obj.collector());
+  };
+  var clientJS = function(obj){
+    var cb = obj.collector();
+    var backend = cms.getExtension("backend");
+    fs.readFile(__dirname+"/assets/script.js", function(err, data){
+      if(err) return cb(err);
+      data = data.toString().split('var mimeTypes;').join("var mimeTypes = "+JSON.stringify(mime.types)+";");
+      cb(null, data);
+    });
+  };
   
   var buildNavigation = function(menu){
     menu.push({class:"ajaxBody", caption:"Resources", href:cms.getExtension("backend").config.route+ext.config.subRoute});
   };
-  var schema = cms.store.Schema({
+  var frontend = cms.getExtension("frontend");
+  var schema = frontend.createSchema({
     alt: {
       type:String,
       required: true
@@ -44,20 +62,18 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   var model;
   
   var router = function(req, res, next){
-    if(req.url.substr(0, cms.config.backend.route.length+cms.config.resource.subRoute.length) === cms.config.backend.route+cms.config.resource.subRoute) {
-      
-      var backend = cms.getExtension("backend");
-      
-      var action = req.url.substr(cms.config.backend.route.length+cms.config.resource.subRoute.length);
+    var backend = cms.getExtension("backend");
+    if(req.url.substr(0, backend.config.route.length+ext.config.subRoute.length) === backend.config.route+ext.config.subRoute) {
+      var action = req.url.substr(backend.config.route.length+ext.config.subRoute.length);
       
       if(/^\/?(\?[\w\W]*)?$/.test(action) || /^\/list\/?(\?[\w\W]*)?$/.test(action)) {
         return model.find({}, function(err, docs){
           if(err) return next(err);
           
-          return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/list.jade", {docs:docs, baseUrl:backend.config.route+ext.config.subRoute+"/"})/*, additionalScripts: '<script src="'+backend.config.route+ext.config.subRoute+'/script.js"></script><style>.input-group-addon {min-width:125px}</style>'*/}));
+          return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/list.jade", {docs:docs, baseUrl:backend.config.route+ext.config.subRoute+"/"})}));
           
         });
-        return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/list.jade", {url: backend.config.route+ext.config.subRoute+"/create"}), additionalScripts: '<script src="'+backend.config.route+ext.config.subRoute+'/script.js"></script><style>.input-group-addon {min-width:125px}</style>'}));
+        return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/list.jade", {url: backend.config.route+ext.config.subRoute+"/create"})}));
       }
       console.log(action);
       if(/^\/edit\/[0-9a-f]{24}\/?(\?[\w\W]*)?$/.test(action)) {
@@ -88,17 +104,16 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
               }
               doc.save(function(err){
                 if(err) return next(err);
-                vanitize({model:ext.config.modelName, query:doc._id}, {}, function(err, snippet){
+                vanitize({model:ext.config.modelName, query:doc._id}, {models:[ext.config.modelName], querys: [doc._id], views:["min", "file", "", "download"]}, function(err, snippet){
                   var content = jade.renderFile(__dirname+"/views/edit.jade", {
                     baseUrl:backend.config.route+ext.config.subRoute+"/",
                     entry: doc
                   });
-                  content+=snippet;
+                  if(snippet) content += "<h2>Vanity URLs</h2>"+snippet;
                   return res.end(backend.renderPage({
                     onlyBody: ("onlyBody" in req.query),
                     title: "Resource asset manager", 
-                    content: content,
-                    additionalScripts: '<style>.input-group-addon {min-width:125px}</style><script src="'+backend.config.route+ext.config.subRoute+'/script.js"></script>'
+                    content: content
                     })
                   );
                 });
@@ -107,17 +122,16 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
             
           }
           
-          return vanitize({model:ext.config.modelName, query:doc._id}, {}, function(err, snippet){
+          return vanitize({model:ext.config.modelName, query:doc._id}, {models:[ext.config.modelName], querys: [doc._id], views:["min", "file", "", "download"]}, function(err, snippet){
             var content = jade.renderFile(__dirname+"/views/edit.jade", {
               baseUrl:backend.config.route+ext.config.subRoute+"/",
               entry: doc
             });
-            content += snippet;
+            content += "<h2>Vanity URLs</h2>"+snippet;
             return res.end(backend.renderPage({
               title: "Resource asset manager",
               content: content,
-              onlyBody: ("onlyBody" in req.query), 
-              additionalScripts: '<script src="'+backend.config.route+ext.config.subRoute+'/script.js"></script><style>.input-group-addon {min-width:125px}</style>'
+              onlyBody: ("onlyBody" in req.query)
             }));
           });
         });
@@ -132,11 +146,11 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
             return fs.unlink(ext.config.dumpPath+"/"+doc._id, function(err){
               if(err) return next(err);
               doc.remove();
-              return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: '<p>Resource removed... <a href="'+backend.config.route+ext.config.subRoute+'">go back to overview...</a></p>', /*additionalScripts: '<script src="'+backend.config.route+ext.config.subRoute+'/script.js"></script><style>.input-group-addon {min-width:125px}</style>'*/}));
+              return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: '<p>Resource removed... <a href="'+backend.config.route+ext.config.subRoute+'">go back to overview...</a></p>'}));
             });
           }
           
-          return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/remove.jade", {baseUrl:backend.config.route+ext.config.subRoute+"/", entry: doc}), /*additionalScripts: '<script src="'+backend.config.route+ext.config.subRoute+'/script.js"></script><style>.input-group-addon {min-width:125px}</style>'*/}));
+          return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/remove.jade", {baseUrl:backend.config.route+ext.config.subRoute+"/", entry: doc})}));
         });
         
         
@@ -179,7 +193,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
             console.log("SAVE:", doc);
             return doc.save(function(err){
               if(err) return next(err);
-              return res.end(backend.renderPage({title: "Resource asset manager", content: '<p>New Resource created... <a href="'+backend.config.route+ext.config.subRoute+'">go back to overview...</a></p>', /*additionalScripts: '<script src="'+backend.config.route+ext.config.subRoute+'/script.js"></script><style>.input-group-addon {min-width:125px}</style>'*/}));
+              return res.end(backend.renderPage({title: "Resource asset manager", content: '<p>New Resource created... <a href="'+backend.config.route+ext.config.subRoute+'">go back to overview...</a></p>'}));
             });
           });
           busboy.on("close", function(){
@@ -191,20 +205,9 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
           
           return req.pipe(busboy)
           
-          // TODO: create an entry in db
-          // TODO: use busboy
-          
           
         }
-        return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/create.jade", {url: backend.config.route+ext.config.subRoute+"/create"}), additionalScripts: '<script src="'+backend.config.route+ext.config.subRoute+'/script.js"></script><style>.input-group-addon {min-width:125px}</style>'}));
-      }
-      if(action === "script.js") {
-        
-        return fs.readFile(__dirname+"/assets/script.js", function(err, data){
-          if(err) return next(err);
-          res.writeHead(200, {"Content-Type":"application/javascript"});
-          res.end(data.toString().split("var mimeTypes;").join("var mimeTypes = "+JSON.stringify(mime.types)+";"));
-        });
+        return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/create.jade", {url: backend.config.route+ext.config.subRoute+"/create"})}));
       }
     }
     
@@ -214,17 +217,15 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   var ext = cms.createExtension({package: require("./package.json")});
   
   ext.on("install", function(event){
-    cms.config.resource = cms.config.resource || {};
-    cms.config.resource.subRoute = cms.config.resource.subRoute || "/resource";
-    cms.config.resource.modelName = cms.config.resource.modelName || "resource";
-    cms.config.resource.modelName = cms.config.resource.modelName || "resource";
-    cms.config.resource.dumpPath = cms.config.resource.dumpPath || __dirname+"/data";
-    
-    ext.config = cms.config.resource;
+    var frontend = cms.getExtension("frontend");
+    ext.config.subRoute = ext.config.subRoute || "/resource";
+    ext.config.modelName = ext.config.modelName || "resource";
+    ext.config.modelName = ext.config.modelName || "resource";
+    ext.config.dumpPath = ext.config.dumpPath || __dirname+"/data";
     
     if(!fs.existsSync(ext.config.dumpPath)) fs.mkdirSync(ext.config.dumpPath);
     
-    model = cms.store.model(cms.config.resource.modelName, schema);
+    model = frontend.createModel(ext.config.modelName, schema);
     model.displayColumns = ["filename", "mimetype", "alt"];
     model.jsonSchema = {
       id: "http://nc.atd-schubert.com/resource",
@@ -234,136 +235,92 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
       additionalProperties: false,
       properties: {}
     };
-    model.views = {
-      json: function(content){
-        var doc = content[0];
-        return function(req, res, next){
-          
-          if(req.headers["if-none-match"]===doc._id+doc.__v+"json"){ 
-            res.writeHead(304, {
-              "Content-Type": doc.mimetype,
-              "ETag": doc._id+doc.__v+"json"
-            });
-            return res.end();
-          }
-          
-          res.writeHead(200, {
-            "content-type": "application/json",
-            "ETag": doc._id+doc.__v+"json"
-          });
-          return res.end(JSON.stringify(doc, null, 2));
-        };
-      },
-      file: function(content){
-        var doc = content[0];
-        return function(req, res, next){
-          if(req.headers["if-none-match"]===doc._id+doc.__v){ 
-            res.writeHead(304, {
-              "Content-Type": doc.mimetype,
-              "ETag": doc._id+doc.__v,
-              'Content-Disposition': 'inline; filename="'+doc.filename+'"'
-            });
-            return res.end();
-          }
-          
-          var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
-          res.writeHead(200, {
-            "Content-Type": doc.mimetype,
-            "ETag": doc._id+doc.__v,
-            'Content-Disposition': 'inline; filename="'+doc.filename+'"'
-          });
-          //switch(content-type)
-          file.pipe(res);
-          
-          return;
-          res.send("Die Datei ist hier: '"+content.src+"' hat den CT: '"+content.contentType+"' und soll als '"+content.filename+"' ausgeliefert werden...")
-        }
-      },
-      download: function(content){
-        var doc = content[0];
-        return function(req, res, next){
-          if(req.headers["if-none-match"]===doc._id+doc.__v+"attachment"){ 
-            res.writeHead(304, {
-              "Content-Type": doc.mimetype,
-              "ETag": doc._id+doc.__v+"attachment",
-              'Content-Disposition': 'attachment; filename="'+doc.filename+'"'
-            });
-            return res.end();
-          }
-          
-          var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
-          res.writeHead(200, {
-            "Content-Type": doc.mimetype,
-            "ETag": doc._id+doc.__v+"attachment",
-            'Content-Disposition': 'attachment; filename="'+doc.filename+'"'
-          });
-          //switch(content-type)
-          file.pipe(res);
-          
-          return;
-          res.send("Die Datei ist hier: '"+content.src+"' hat den CT: '"+content.contentType+"' und soll als '"+content.filename+"' ausgeliefert werden...")
-        }
-      },
-      min: function(content){
-        var doc = content[0];
-        return function(req, res, next){
-          if(req.headers["if-none-match"]===doc._id+doc.__v+"min"){ 
-            res.writeHead(304, {
-              "Content-Type": doc.mimetype,
-              "ETag": doc._id+doc.__v+"min",
-            'Content-Disposition': 'inline; filename="'+doc.filename+'"'
-            });
-            return res.end();
-          }
-          
-          var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
-          res.writeHead(200, {
-            "Content-Type": doc.mimetype,
-            "ETag": doc._id+doc.__v+"min",
-            'Content-Disposition': 'inline; filename="'+doc.filename+'"'
-          });
-          //switch(content-type)
-          file.pipe(res);
-          
-          return;
-          res.send("Die Datei ist hier: '"+content.src+"' hat den CT: '"+content.contentType+"' und soll als '"+content.filename+"' ausgeliefert werden...")
-        }
-      },
-      inlineHTML: function(content){ // TODO: get corresponding HTML snippet to include this snippet. img for image, svg inline, everything else as a link in an anchor.
-        return function(req, res, next){
-          var snippet = "";
-          res.writeHead(200, {
-            "content-type": "text/html"
-          });
-          res.end(JSON.stringify(content));
-        }
-      }
-    };
+    model.addView(frontend.createView("json", function(obj){
+      var doc = obj.content[0];
+      var req = obj.request;
+      var res = obj.result;
+      
+      /*if(req.headers["if-none-match"]===doc._id+doc.__v+"json"){ 
+        res.writeHead(304, {
+          "Content-Type": doc.mimetype,
+          "ETag": doc._id+doc.__v+"json"
+        });
+        return res.end();
+      }*/
+      res.writeHead(200, {
+        "content-type": "application/json"
+      });
+      return res.end(JSON.stringify(doc, null, 2));
+    }));
+    model.addView(frontend.createView("file", function(obj){
+      var doc = obj.content[0];
+      var req = obj.request;
+      var res = obj.result;
+      
+      var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
+      res.writeHead(200, {
+        "Content-Type": doc.mimetype,
+        'Content-Disposition': 'inline; filename="'+doc.filename+'"'
+      });
+      file.pipe(res);
+      return;
+    }));
+    model.addView(frontend.createView("download", function(obj){
+      var doc = obj.content[0];
+      var req = obj.request;
+      var res = obj.result;
+      
+      var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
+      res.writeHead(200, {
+        "Content-Type": doc.mimetype,
+        'Content-Disposition': 'attachment; filename="'+doc.filename+'"'
+      });
+      file.pipe(res);
+      return;
+    }));
+    model.addView(frontend.createView("min", function(obj){
+      var doc = obj.content[0];
+      var req = obj.request;
+      var res = obj.result;
+      
+      var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
+      res.writeHead(200, {
+        "Content-Type": doc.mimetype,
+        'Content-Disposition': 'inline; filename="'+doc.filename+'"'
+      });
+      file.pipe(res); // TODO: minify by specific contenttype
+      return;
+    }));
+    // TODO: maybe add inlineHTML
+    
     /*try{
       cms.getExtension("jschEditor").ignoreModel(ext.config.modelName);
     } catch(e){}*/
   });
   ext.on("uninstall", function(event){
-    ext.deactivate();
-    if(event.args && event.args.all) delete cms.config.backend;
-    
     // TODO: remove model...
   });
   
   ext.on("activate", function(event){
     // event.target; event.args
+    var backend = cms.getExtension("backend");
     if(cms.requestMiddlewares.indexOf(router) === -1) {
       cms.requestMiddlewares.push(router);
     }
-    cms.getExtension("backend").on("buildNavigation", buildNavigation);
+    backend.on("buildNavigation", buildNavigation);
+    backend.on("buildClientCSS", clientCSS);
+    backend.on("buildClientJS", clientJS);
   });
   
   ext.on("deactivate", function(event){
     // event.target; event.args
+    var backend = cms.getExtension("backend");
     if(cms.requestMiddlewares.indexOf(router) !== -1) {
       cms.requestMiddlewares.splice(event.target.requestMiddlewares.indexOf(router), 1);
     }
-    cms.getExtension("backend").removeListener("buildNavigation", buildNavigation);
+    backend.removeListener("buildNavigation", buildNavigation);
+    backend.removeListener("buildClientCSS", clientCSS);
+    backend.removeListener("buildClientCSS", clientJS);
   });
   
   ext.middleware = router;

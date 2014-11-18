@@ -1,8 +1,9 @@
 h1 List of resources
-ul
-- for (var i=0; i<docs.length; i++)
-  li
-    a.ajaxBody(href=baseUrl+"edit/"+docs[i]._id)=  docs[i].filename
-
-h2 Upload a file
-a.ajaxBody(href=baseUrl+"create/") Create a new Resource here...
+.nce-resource
+  ul
+  - for (var i=0; i<docs.length; i++)
+    li
+      a.ajaxBody(href=baseUrl+"edit/"+docs[i]._id)=  docs[i].filename
+  
+  h2 Upload a file
+  a.ajaxBody(href=baseUrl+"create/") Create a new Resource here...
