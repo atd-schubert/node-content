@@ -62,12 +62,16 @@ module.exports = function(cms){
           
         }
         return ext.renderVanityUrlLists({}, {}, function(err, html){
-          return res.end(backend.renderPage({
+          return backend.renderPage({
+            request: req,
             content: '<h1>List of all vanity Urls</h1>'+html,
             onlyBody: "onlyBody" in req.query,
             onlyStatus: "onlyStatus" in req.query,
             title: "VanityUrl list"
-          }));
+          }, function(err, html){
+            if(err) return next(err);
+            return res.end(html);
+          });
         });
         return res.send("// TODO: vanityUrl root");
       }
@@ -102,11 +106,10 @@ module.exports = function(cms){
         if(req.method === "POST") {
           return bodyParser.urlencoded()(req, res, function(err){
             if(err) return next(err);
-            console.log(req.body._id, req.body._id.length, "546501538a4255bd61819c3b".length, req.body._id === "546501538a4255bd61819c3b")
+            // console. log(req.body._id, req.body._id.length, "546501538a4255bd61819c3b".length, req.body._id === "546501538a4255bd61819c3b")
             model.findById(req.body._id, function(err, doc){
               if(err) return next(err); // TODO: make a json status...
               if(!doc) return console.error("Error");
-              console.log("DOC", doc)
               var hash;
               for(hash in req.body) if(hash !== "_id") doc[hash] = req.body[hash];
               
@@ -134,13 +137,11 @@ module.exports = function(cms){
     };
     
     ext.getByUrl(req.url, function(err, doc){
+      var frontend = cms.getExtension("frontend");
 	    if(err && err.message === "Can not find vanityUrl" || !doc) return next();
 	    if(err) return next(err);
-	    
-	    cms.getContent(doc.model, doc.view, doc.query, function(err, mw){
-		    if(err) return next(err);
-		    mw(req, res, next);
-	    });
+	    res.on("error", function(err){return next(err);});
+	    return frontend.streamContent(doc.model, doc.view, doc.query, {response:res, request: req});
     });
   };
   

@@ -16,7 +16,6 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   if(!cms) throw new Error("You have to specify the cms object");
   
   var vanitize = function(a,b,c){
-    console.log("VN",b);
     if(cms.getExtension("vanity-url") && cms.getExtension("vanity-url").renderVanityUrlLists) return cms.getExtension("vanity-url").renderVanityUrlLists(a,b,c);
     return c(null, "");
   };
@@ -34,8 +33,8 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     });
   };
   
-  var buildNavigation = function(menu){
-    menu.push({class:"ajaxBody", caption:"Resources", href:cms.getExtension("backend").config.route+ext.config.subRoute});
+  var buildNavigation = function(obj){
+    obj.collector()(null, {class:"ajaxBody", caption:"Resources", href:cms.getExtension("backend").config.route+ext.config.subRoute});
   };
   var frontend = cms.getExtension("frontend");
   var schema = frontend.createSchema({
@@ -70,12 +69,27 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
         return model.find({}, function(err, docs){
           if(err) return next(err);
           
-          return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/list.jade", {docs:docs, baseUrl:backend.config.route+ext.config.subRoute+"/"})}));
-          
+          return backend.renderPage({
+            request: req,
+            onlyBody: ("onlyBody" in req.query),
+            title: "Resource asset manager",
+            content: jade.renderFile(__dirname+"/views/list.jade", {docs:docs, baseUrl:backend.config.route+ext.config.subRoute+"/"})
+          }, function(err, html){
+            if(err) return next(err);
+            return res.end(html);
+          });
         });
-        return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/list.jade", {url: backend.config.route+ext.config.subRoute+"/create"})}));
+        
+        return backend.renderPage({
+          request: req,
+          onlyBody: ("onlyBody" in req.query),
+          title: "Resource asset manager",
+          content: jade.renderFile(__dirname+"/views/list.jade", {url: backend.config.route+ext.config.subRoute+"/create"})
+        }, function(err, html){
+          if(err) return next(err);
+          return res.end(html);
+        });
       }
-      console.log(action);
       if(/^\/edit\/[0-9a-f]{24}\/?(\?[\w\W]*)?$/.test(action)) {
         return model.findById(action.substr(6, 24), function(err, doc){
           if(err) return next(err);
@@ -109,13 +123,17 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
                     baseUrl:backend.config.route+ext.config.subRoute+"/",
                     entry: doc
                   });
-                  if(snippet) content += "<h2>Vanity URLs</h2>"+snippet;
-                  return res.end(backend.renderPage({
+                  if(snippet) content += snippet;
+                  
+                  return backend.renderPage({
+                    request: req,
                     onlyBody: ("onlyBody" in req.query),
                     title: "Resource asset manager", 
                     content: content
-                    })
-                  );
+                  }, function(err, html){
+                    if(err) return next(err);
+                    return res.end(html);
+                  });
                 });
               });
             });
@@ -127,12 +145,17 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
               baseUrl:backend.config.route+ext.config.subRoute+"/",
               entry: doc
             });
-            content += "<h2>Vanity URLs</h2>"+snippet;
-            return res.end(backend.renderPage({
+            content += snippet;
+            
+            return backend.renderPage({
+              request: req,
               title: "Resource asset manager",
               content: content,
               onlyBody: ("onlyBody" in req.query)
-            }));
+            }, function(err, html){
+              if(err) return next(err);
+              return res.end(html);
+            });
           });
         });
         
@@ -146,11 +169,28 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
             return fs.unlink(ext.config.dumpPath+"/"+doc._id, function(err){
               if(err) return next(err);
               doc.remove();
-              return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: '<p>Resource removed... <a href="'+backend.config.route+ext.config.subRoute+'">go back to overview...</a></p>'}));
+              
+              return backend.renderPage({
+                request: req,
+                onlyBody: ("onlyBody" in req.query),
+                title: "Resource asset manager",
+                content: '<p>Resource removed... <a href="'+backend.config.route+ext.config.subRoute+'">go back to overview...</a></p>'
+              }, function(err, html){
+                if(err) return next(err);
+                return res.end(html);
+              });
             });
           }
           
-          return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/remove.jade", {baseUrl:backend.config.route+ext.config.subRoute+"/", entry: doc})}));
+          return backend.renderPage({
+            request: req,
+            onlyBody: ("onlyBody" in req.query),
+            title: "Resource asset manager",
+            content: jade.renderFile(__dirname+"/views/remove.jade", {baseUrl:backend.config.route+ext.config.subRoute+"/", entry: doc})
+          }, function(err, html){
+            if(err) return next(err);
+            return res.end(html);
+          });
         });
         
         
@@ -171,7 +211,6 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
             tmp.mimetype = mimetype;
           });
           busboy.on("field", function(fieldname, val, fieldnameTruncated, valTruncated){
-            console.log("got field");
             if(fieldname === "tags") {
               val = val.split(",");
               var arr = [];
@@ -190,24 +229,37 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
             if(!doc.mimetype) doc.mimetype = tmp.mimetype;
             
             if(typeof doc.tags === "string") doc.tags = split(",");
-            console.log("SAVE:", doc);
             return doc.save(function(err){
               if(err) return next(err);
-              return res.end(backend.renderPage({title: "Resource asset manager", content: '<p>New Resource created... <a href="'+backend.config.route+ext.config.subRoute+'">go back to overview...</a></p>'}));
+              
+              
+              return backend.renderPage({
+                request: req,
+                title: "Resource asset manager",
+                content: '<p>New Resource created... <a href="'+backend.config.route+ext.config.subRoute+'">go back to overview...</a></p>'
+              }, function(err, html){
+                if(err) return next(err);
+                return res.end(html);
+              });
             });
           });
           busboy.on("close", function(){
-            console.log("Close");
           });
           req.on("close", function(){
-            console.log("req-close");
           });
           
           return req.pipe(busboy)
-          
-          
         }
-        return res.end(backend.renderPage({onlyBody: ("onlyBody" in req.query), title: "Resource asset manager", content: jade.renderFile(__dirname+"/views/create.jade", {url: backend.config.route+ext.config.subRoute+"/create"})}));
+        
+        return backend.renderPage({
+          request: req,
+          onlyBody: ("onlyBody" in req.query),
+          title: "Resource asset manager",
+          content: jade.renderFile(__dirname+"/views/create.jade", {url: backend.config.route+ext.config.subRoute+"/create"})
+        }, function(err, html){
+          if(err) return next(err);
+          return res.end(html);
+        });
       }
     }
     
@@ -238,7 +290,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     model.addView(frontend.createView("json", function(obj){
       var doc = obj.content[0];
       var req = obj.request;
-      var res = obj.result;
+      var res = obj.response;
       
       /*if(req.headers["if-none-match"]===doc._id+doc.__v+"json"){ 
         res.writeHead(304, {
@@ -247,28 +299,31 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
         });
         return res.end();
       }*/
-      res.writeHead(200, {
-        "content-type": "application/json"
-      });
+      res.writeHead(200, {"content-type": "application/json"});
       return res.end(JSON.stringify(doc, null, 2));
     }));
-    model.addView(frontend.createView("file", function(obj){
+    var file = frontend.createView("file", function(obj){
       var doc = obj.content[0];
       var req = obj.request;
-      var res = obj.result;
+      var res = obj.response;
+      if(!doc) return res.error(new Error("Can't find resource."));
       
       var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
       res.writeHead(200, {
         "Content-Type": doc.mimetype,
         'Content-Disposition': 'inline; filename="'+doc.filename+'"'
       });
-      file.pipe(res);
+      return file.pipe(res);
       return;
-    }));
+    });
+    file.autoNotModified = true;
+    file.autoeTag = true;
+    file.autoCache = false;
+    model.addView(file);
     model.addView(frontend.createView("download", function(obj){
       var doc = obj.content[0];
       var req = obj.request;
-      var res = obj.result;
+      var res = obj.response;
       
       var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
       res.writeHead(200, {
@@ -281,7 +336,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     model.addView(frontend.createView("min", function(obj){
       var doc = obj.content[0];
       var req = obj.request;
-      var res = obj.result;
+      var res = obj.response;
       
       var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
       res.writeHead(200, {

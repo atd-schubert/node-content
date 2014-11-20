@@ -13,6 +13,10 @@ app.use(cms.middleware);
 
 /* CMS parts */
 
+var logger = require("./extensions/winston")(cms);
+logger.install();
+logger.activate();
+
 var store = require("./extensions/mongoose-store")(cms);
 store.install();
 store.activate();
@@ -41,6 +45,10 @@ vanityUrl.activate();
 var resource = require("./extensions/resource")(cms);
 resource.install();
 resource.activate();
+
+var amanecer = require("./extensions/amanecer")(cms);
+amanecer.install();
+amanecer.activate();
 
 
 

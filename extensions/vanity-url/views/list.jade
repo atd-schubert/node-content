@@ -1,3 +1,4 @@
+- console.log(opts);
 - opts = opts || {};
 - opts.cols = opts.cols || ["#", "url", "model", "view", "query", "action"];
 - opts.urls = [];
@@ -5,8 +6,9 @@
 - opts.views = opts.views || [];
 - opts.querys = opts.querys || [];
 
-.vanity-url
-  table.vanity-url-entrys(data-models=opts.models, data-views="", data-queries="")
+.vanity-url(data-models=opts.models.join(" "), data-views=opts.views.join(" "), data-querys=opts.querys.join(" "))
+  h2 Vanity URLs:
+  table.vanity-url-entries
     thead
       tr
         - for (var n=0; n<opts.cols.length; n++)
@@ -48,4 +50,4 @@
                             li(role='presentation')
                               a.selectItem(role='menuitem', tabindex='-1')= opts[opts.cols[n]+"s"][m]
             
-  a.btn.btn-default.vanity-url-create(href="#TODO") create vanityUrl
+  a.btn.btn-default.vanity-url-create-entry(href="#TODO") create vanityUrl

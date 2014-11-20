@@ -15,7 +15,8 @@ module.exports = function(cms){
     fs.readFile(__dirname+"/assets/style.css", obj.collector());
   };
   
-  var buildNavigation = function(menu){
+  var buildNavigation = function(obj){
+  
     var backendRoute = cms.getExtension("backend").config.route;
     var store = cms.getExtension("mongoose-store");
     var hash;
@@ -23,7 +24,7 @@ module.exports = function(cms){
     for(hash in store.getStore().models) {
       if(ext.config.noticeAll || !ignored[hash]) submenu.push({class:"ajaxBody", caption:hash, href:backendRoute+ext.config.subRoute+"/"+hash});
     }
-    menu.push({caption:"Edit Content", submenu: submenu});
+    obj.collector()(null, {caption:"Edit Content", submenu: submenu});
   };
   
   var router = function(req, res, next){
@@ -45,11 +46,15 @@ module.exports = function(cms){
           models:models
         });
         
-        return res.end(backend.renderPage({
+        return backend.renderPage({
+          request: req,
           title: "Jsch Content Editor - Overview",
           content: content,
           onlyBody: ("onlyBody" in req.query)
-        }));
+        }, function(err, html){
+          if(err) return next(err);
+          return res.end(html);
+        });
       }
       
       if(arr.length===1 || arr[1].length===0) {// list entries
@@ -63,18 +68,27 @@ module.exports = function(cms){
             rootUrl: backend.config.route+ext.config.subRoute+"/"+arr[0]
           });
           
-          return res.end(backend.renderPage({
+          return backend.renderPage({
+            request: req,
             title: "Jsch Content Editor - Overview",
             onlyBody: ("onlyBody" in req.query),
             content: content
-          }));
+          }, function(err, html){
+            if(err) return next(err);
+            return res.end(html);
+          });
         });
       }
-      return res.end(backend.renderPage({
+      
+      return backend.renderPage({
+        request: req,
         title: "Jsch Content Editor",
         onlyBody: ("onlyBody" in req.query),
         content: "// TODO: Here goes the jsch"
-      }));
+      }, function(err, html){
+        if(err) return next(err);
+        return res.end(html);
+      });
       
     } else {
       next();

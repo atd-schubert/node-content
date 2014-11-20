@@ -9,7 +9,7 @@ var NodeContentManagement = function NodeContent(opts){
   
   // Configuration...
   opts = opts || {};
-  
+  /*
   opts.server = opts.server || {};
   if(opts.server.port && !opts.server.hostname && !opts.server.host) opts.server.hostname = "localhost"; // just port
   if(opts.server.hostname && opts.server.port && !opts.server.host) opts.server.host = opts.server.hostname+":"+opts.server.port; // not hostname
@@ -22,6 +22,7 @@ var NodeContentManagement = function NodeContent(opts){
   opts.server.hostname = opts.server.hostname || "localhost";
   opts.server.port = opts.server.port || "80";
   opts.server.host = opts.server.host || "localhost:80";
+  //*/
   
   // Extension Class:
   var Extension = function(opts){
@@ -79,13 +80,6 @@ var NodeContentManagement = function NodeContent(opts){
   
   this.config = opts;
   
-  //this.contentManagement = new ContentManagement(opts.contentManagement);
-
-  //this.i18n = I18n;
-  // this.sitemap = new Sitemap(opts.sitemap);
-  // this.manifest = new Manifest(opts.manifest);
-  // this.serveAssets = new ServeAssets(opts.assets);
-  
   this.requestMiddlewares = [];
   
   this.middleware = function(req, res, done){
@@ -102,18 +96,6 @@ var NodeContentManagement = function NodeContent(opts){
     };
     next();
     return;
-  };
-  
-  this.getContent = function(model, view, query, cb){
-    if(!(model in self.store.models)) return cb(new Error("Unknown model '"+model+"'"));
-    var Model = self.store.models[model];
-    
-    if(!("views" in Model) || !(view in Model.views)) return cb(new Error("Unknown view '"+view+"' in model '"+model+"'"));
-    
-    return Model.find(query, function(err, data){
-      if(err) return cb(err);
-      cb(null, Model.views[view](data));
-    });
   };
 };
 

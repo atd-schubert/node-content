@@ -15,10 +15,12 @@ var ContentStream = function(){
   this.end = function(data){
     var i;
     for(i=0; arguments.length>i; i++) this.emit("data", arguments[i]);
-    this.emit("end");
-    this.emit("close");
+    this.emit("end", "");
+    this.emit("close", "");
+    this.write = this.end = function(){};
   };
   this.error = function(data){
+    var i;
     for(i=0; arguments.length>i; i++) this.emit("error", data);
   };
   /*this.close = function(data){

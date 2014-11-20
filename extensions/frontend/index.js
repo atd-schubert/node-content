@@ -43,7 +43,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     // functions (Can't be overwritten!)
     this.getName = function(){return name};
     this.render = function(obj){
-      var result;
+      var response;
       
       obj = obj || {};
       
@@ -53,48 +53,49 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
       obj.request.headers = obj.request.headers || {};
       
       
-      if(obj.result) result = obj.result;
-      obj.result = new ContentStream();
-      obj.result.writeHead = function(code, headers){
+      if(obj.response) response = obj.response;
+      obj.response = new ContentStream();
+      obj.response.writeHead = function(code, headers){
         headers = headers || {};
         if(self.autoEtag && obj.content && obj.content.length === 1 && ("_id" in obj.content[0]) && ("__v" in obj.content[0])) {
           headers.etag = headers.etag || obj.content[0]._id + obj.content[0].__v + name;
+          // TODO: entityTag aus allen content[x]._id 's und __v 's und daraus + viewName einen md5
         }
         if(self.autoNotModified && obj.request.headers["if-none-match"] === headers.etag) {
-          obj.result.emit("writeHead", 304, headers);
-          obj.result.end();
+          obj.response.emit("writeHead", 304, headers);
+          obj.response.end();
           
-          obj.result.write = function(){};
-          obj.result.end = function(){};
+          obj.response.write = function(){};
+          obj.response.end = function(){};
           
           return; 
         }
-        obj.result.emit("writeHead", code, headers);
+        obj.response.emit("writeHead", code, headers);
       };
-      if(result) {
-        obj.result.pipe(result);
-        obj.result.on("writeHead", function(code, headers){
-          if(result && result.writeHead && typeof result.writeHead === "function") result.writeHead(code, headers);
+      if(response) {
+        obj.response.pipe(response);
+        obj.response.on("writeHead", function(code, headers){
+          if(response && response.writeHead && typeof response.writeHead === "function") response.writeHead(code, headers);
         });
       }
       
       obj.getContent = obj.getContent = function(cb){
         var content = "";
-        obj.result.on("data", function(data){
+        obj.response.on("data", function(data){
           content += data.toString();
         })
-        obj.result.on("end", function(data){
+        obj.response.on("end", function(data){
           content += data.toString();
           cb(null, content);
         });
-        obj.result.on("error", function(err){
+        obj.response.on("error", function(err){
           cb(err);
         });
       };
-      if(self.autoCache && cms.getExtension("cache") && obj.request.url) {
-        obj.result.on("writeHead", function(code, headers){
+      if(false && self.autoCache && cms.getExtension("cache") && obj.request.url) { // TODO: 
+        obj.response.on("writeHead", function(code, headers){
           var cacheStream = cms.getExtension("cache").cacheStream({url:obj.request.url, headers: headers});
-          obj.result.pipe(cacheStream);
+          obj.response.pipe(cacheStream);
         });
         
       }
@@ -109,18 +110,11 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
 	  if(req.url.substr(0, ext.config.route.length) === ext.config.route) {
 	    var arr = req.url.substr(ext.config.route.length+1).split("/");
 	    if(arr.length<2) return next();
-	    
-	    var model = store.getModel(arr[0]);
-      if(!model) return next(new Error("Unknown model '"+arr[0]+"'"));
-      
-      if(typeof model.getView !== "function") return next(new Error("The model '"+arr[0]+"' has no views"));
-      var view = model.getView(arr[1]);
-      if(!view) return next(new Error("Unknown view '"+arr[1]+"' in model '"+arr[0]+"'"));
-      
-      return model.find(mkQuery(arr[2]), function(err, data){
-        if(err) return next(err);
-        var stream = view.render({content:data, request:req, result:res});
-      });
+	    res.on("error", function(err){
+  	    return next(err);
+	    });
+	    var stream = ext.streamContent(arr[0], arr[1], arr[2], {requst:req});
+	    stream.pipe(res);
 	  } else {
 		  next();
 	  }
@@ -154,7 +148,37 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   ext.createView = function(name, fn, opts){
     return new View(name, fn, opts);
   };
+  ext.streamContent = function(modelName, viewName, query, opts){
+    var store = cms.getExtension("mongoose-store");
+    var response = opts && opts.response;
+    var stream = new ContentStream();
     
+    if(response) {
+      if(typeof response.writeHead === "function") stream.on("writeHead", function(code, headers){response.writeHead(code, headers);});
+      stream.pipe(response);
+    }
+    
+    opts.response = stream;
+    
+    stream.writeHead = function(code, headers){
+      stream.emit("writeHead", code, headers);
+    };
+    
+    var model = store.getModel(modelName);
+    if(!model) return stream.error(new Error("Unknown model '"+modelName+"'"));
+    
+    if(typeof model.getView !== "function") return stream.error(new Error("The model '"+modelName+"' has no views"));
+    var view = model.getView(viewName);
+    if(!view) return stream.error(new Error("Unknown view '"+viewName+"' in model '"+modelName+"'"));
+    
+    model.find(mkQuery(query), function(err, data){
+      if(err) return stream.error(err);
+      opts.content = data;
+      view.render(opts).response.pipe(stream);
+    });
+    return stream;
+  };
+  /*
   ext.getContent = function(modelName, viewName, query, cb){ // TODO: verify...
     var store = cms.getExtension("mongoose-store");
     var model = store.getModel(modelName);
@@ -175,7 +199,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
         cb(null, packets.join(""));
       });
     });
-  };
+  };*/
   
   ext.on("install", function(event){
     ext.config.route = ext.config.route || "/cms";

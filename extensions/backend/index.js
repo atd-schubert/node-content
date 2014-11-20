@@ -45,7 +45,15 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   var backendRouter = function(req, res, next){
     var regex = new RegExp("^"+ext.config.route.split("/").join("\\/")+"(\\/?(\\?([\\w\\W]*)?)?)?$");
     if(regex.test(req.url)){
-      return res.end(ext.renderPage({onlyBody: ("onlyBody" in req.query), title: "Welcome to the NC backend", content: jade.renderFile(__dirname+"/views/root.jade", {})}));
+      ext.renderPage({
+        request: req,
+        onlyBody: ("onlyBody" in req.query),
+        title: "Welcome to the NC backend",
+        content: jade.renderFile(__dirname+"/views/root.jade", {})
+      }, function(err, html){
+        if(err) return next(err);
+        return res.end(html);
+      });
     } else if(req.url === ext.config.route+"/backend/js") {
       return ext.buildClientJS(function(err, data){
         if(err) return next(err);
@@ -116,11 +124,33 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   
   ext.middleware = backendRouter;
   
-  ext.buildNavigation = function(){
+  ext.buildNavigation = function(opts, cb){ // TODO: build with collector!
+    if(!cb) throw new Error("You have to specify a callback");
+    ext.emit("buildNavigation", mkCollector(opts, function(err, menu){
+      if(err) return cb(err);
+      
+      menu.sort(function(A,B){
+        var a = A.caption.toString().toLowerCase();
+        var b = B.caption.toString().toLowerCase();
+        var i;
+        var min = a.length+(b.length-a.length);
+        var tmp;
+        
+        for (i=0; i<min; i++) {
+          tmp = a.charCodeAt(i) - b.charCodeAt(i);
+          if(tmp !== 0) return tmp;
+        }
+      });
+      menu.unshift({caption:"Backend", href:ext.config.route, class:"ajaxBody"});
+      
+      return jade.renderFile(__dirname+"/views/navigation.jade", {menu: menu}, cb);
+    }));
+    
+    return;
     var menu = [{caption:"Backend", href:ext.config.route, class:"ajaxBody"}];
     ext.emit("buildNavigation", menu);
     
-    return jade.renderFile(__dirname+"/views/navigation.jade", {menu: menu});
+    return 
   };
   
   ext.buildClientJS = function(cb, opts){
@@ -149,15 +179,20 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     cache.uncache(ext.config.route+"/backend/js");
   };
   
-  ext.renderPage = function(content){
-    if(content.onlyStatus) return content.content;
+  ext.renderPage = function(obj, cb){
+    if(obj.onlyStatus) return cb(null, obj.content);
     
-    content.navigation = content.navigation || ext.buildNavigation();
-    content.title = content.title || "Unnamed backend page";
-    content.onlyBody = content.onlyBody || false;
-    content.onlyStatus = content.onlyStatus || false;
-    content.rootUrl = ext.config.route;
-    return jade.renderFile(__dirname+"/views/page.jade", content);
+    ext.buildNavigation(obj, function(err, menu){
+      if(err) return cb(err);
+      
+      obj.navigation = obj.navigation || menu;
+      obj.title = obj.title || "Unnamed backend page";
+      obj.onlyBody = obj.onlyBody || false;
+      obj.onlyStatus = obj.onlyStatus || false;
+      obj.rootUrl = obj.rootUrl || ext.config.route;
+      
+      return jade.renderFile(__dirname+"/views/page.jade", obj, cb);
+    });
   };
   ext.install();
   return ext;
