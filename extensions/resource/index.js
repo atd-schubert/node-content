@@ -317,7 +317,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
       return;
     });
     file.autoNotModified = true;
-    file.autoeTag = true;
+    file.autoEtag = true;
     file.autoCache = false;
     model.addView(file);
     model.addView(frontend.createView("download", function(obj){

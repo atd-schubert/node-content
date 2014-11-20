@@ -54,7 +54,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
       
       
       if(obj.response) response = obj.response;
-      obj.response = new ContentStream();
+      obj.response = new ContentStream({pipeHead: true, cutOnEnd:true});
       obj.response.writeHead = function(code, headers){
         headers = headers || {};
         if(self.autoEtag && obj.content && obj.content.length === 1 && ("_id" in obj.content[0]) && ("__v" in obj.content[0])) {
@@ -72,12 +72,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
         }
         obj.response.emit("writeHead", code, headers);
       };
-      if(response) {
-        obj.response.pipe(response);
-        obj.response.on("writeHead", function(code, headers){
-          if(response && response.writeHead && typeof response.writeHead === "function") response.writeHead(code, headers);
-        });
-      }
+      if(response) obj.response.pipe(response);
       
       obj.getContent = obj.getContent = function(cb){
         var content = "";
@@ -151,18 +146,11 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   ext.streamContent = function(modelName, viewName, query, opts){
     var store = cms.getExtension("mongoose-store");
     var response = opts && opts.response;
-    var stream = new ContentStream();
+    var stream = new ContentStream({pipeHead: true, withWriteHead: true, cutOnEnd:true});
     
-    if(response) {
-      if(typeof response.writeHead === "function") stream.on("writeHead", function(code, headers){response.writeHead(code, headers);});
-      stream.pipe(response);
-    }
+    if(response) stream.pipe(response);
     
     opts.response = stream;
-    
-    stream.writeHead = function(code, headers){
-      stream.emit("writeHead", code, headers);
-    };
     
     var model = store.getModel(modelName);
     if(!model) return stream.error(new Error("Unknown model '"+modelName+"'"));

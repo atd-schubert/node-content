@@ -138,7 +138,7 @@ module.exports = function(cms){
     
     ext.getByUrl(req.url, function(err, doc){
       var frontend = cms.getExtension("frontend");
-	    if(err && err.message === "Can not find vanityUrl" || !doc) return next();
+	    if(err && err.err === "Can not find vanityUrl" || !doc) return next();
 	    if(err) return next(err);
 	    res.on("error", function(err){return next(err);});
 	    return frontend.streamContent(doc.model, doc.view, doc.query, {response:res, request: req});

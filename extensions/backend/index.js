@@ -4,6 +4,9 @@ var jade = require("jade");
 var fs = require("fs");
 var md5 = require("MD5");
 
+var JQUERY_SRC = fs.readFileSync(__dirname+"/assets/jquery.js");
+var UNDERSCORE_SRC = fs.readFileSync(__dirname+"/assets/underscore.js");
+
 var mkCollector = function(obj, cb){
   var collectorDone = false;
   var datas = [];
@@ -15,7 +18,8 @@ var mkCollector = function(obj, cb){
     if(datas.length !== cbs.length) return;
     
     collectorDone = true;
-    cb(errs.length ? errs : null, datas);
+    if(errs.length) console.error(errs);
+    cb(errs[0], datas);
   };
   
   obj = obj || {};
@@ -45,7 +49,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   var backendRouter = function(req, res, next){
     var regex = new RegExp("^"+ext.config.route.split("/").join("\\/")+"(\\/?(\\?([\\w\\W]*)?)?)?$");
     if(regex.test(req.url)){
-      ext.renderPage({
+      return ext.renderPage({
         request: req,
         onlyBody: ("onlyBody" in req.query),
         title: "Welcome to the NC backend",
@@ -59,7 +63,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
         if(err) return next(err);
         data = data.join("\n");
         
-        var headers = {"Content-Type": "application/javascript", etag:md5(data)}
+        var headers = {"Content-Type": "application/javascript", etag:md5(data)};
         var cache = cms.getExtension("cache");
         if(cache) {
           cache.cacheData({headers: headers, data:data, url: ext.config.route+"/backend/js", force:true});
@@ -86,9 +90,9 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
         res.writeHead(200, headers);
         res.end(data);
       }, {req: req});
-    } else {
-      next();
     }
+    
+    return next();
     
   };
   
@@ -161,6 +165,15 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     obj.collector()(null, 'window.ncBackend = {backend:{}};');
   });
   ext.on("buildClientJS", function(obj){
+    obj.collector()(null, JQUERY_SRC);
+  });
+  ext.on("buildClientJS", function(obj){
+    obj.collector()(null, UNDERSCORE_SRC);
+  });
+  ext.on("buildClientJS", function(obj){
+    fs.readFile(__dirname+"/assets/bootstrap.js", obj.collector());
+  });
+  ext.on("buildClientJS", function(obj){
     fs.readFile(__dirname+"/assets/script.js", obj.collector());
   });
   
@@ -168,6 +181,9 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     if(!cb) throw new Error("You have to specify a callback");
     ext.emit("buildClientCSS", mkCollector(opts, cb));
   };
+  ext.on("buildClientCSS", function(obj){
+    fs.readFile(__dirname+"/assets/bootstrap.css", obj.collector());
+  });
   ext.on("buildClientCSS", function(obj){
     fs.readFile(__dirname+"/assets/style.css", obj.collector());
   });
