@@ -108,8 +108,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
 	    res.on("error", function(err){
   	    return next(err);
 	    });
-	    var stream = ext.streamContent(arr[0], arr[1], arr[2], {requst:req});
-	    stream.pipe(res);
+	    var stream = ext.streamContent(arr[0], arr[1], arr[2], {request:req, response:res});
 	  } else {
 		  next();
 	  }

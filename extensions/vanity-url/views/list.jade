@@ -1,4 +1,3 @@
-- console.log(opts);
 - opts = opts || {};
 - opts.cols = opts.cols || ["#", "url", "model", "view", "query", "action"];
 - opts.urls = [];
@@ -32,7 +31,6 @@
                 td= i+1              
               -else
                 td
-                  - console.log(opts.cols[n]+"s")
                   - if(opts[opts.cols[n]+"s"].length === 0)
                     input.form-control(type="text", value=docs[i][opts.cols[n]], name=opts.cols[n], placeholder="Insert "+opts.cols[n]+" here...")
                   - else if(opts[opts.cols[n]+"s"].length === 1)

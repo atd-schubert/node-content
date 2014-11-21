@@ -31,8 +31,8 @@ module.exports = function(cms){
   
   ext.on("install", function(event){
     
-    ext.config.subRoute = ext.config.subRoute || "/dummy";
-    ext.config.modelName = ext.config.modelName || "dummy";
+    ext.config.subRoute = ext.config.subRoute || "/"+ext.name;
+    ext.config.modelName = ext.config.modelName || ext.name;
     ext.config.dumpPath = ext.config.dumpPath || __dirname+"/data";
     
     // var store = cms.getExtension("mongoose-store");

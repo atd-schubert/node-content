@@ -9,20 +9,6 @@ var NodeContentManagement = function NodeContent(opts){
   
   // Configuration...
   opts = opts || {};
-  /*
-  opts.server = opts.server || {};
-  if(opts.server.port && !opts.server.hostname && !opts.server.host) opts.server.hostname = "localhost"; // just port
-  if(opts.server.hostname && opts.server.port && !opts.server.host) opts.server.host = opts.server.hostname+":"+opts.server.port; // not hostname
-  if(opts.server.host && !opts.server.port && !opts.server.hostname) { // just hostname
-    opts.server.hostname = opts.server.host.split(":")[0];
-    opts.server.port = opts.server.host.split(":")[1];
-  }
-
-  opts.server.protocol = opts.server.protocol || "http:";
-  opts.server.hostname = opts.server.hostname || "localhost";
-  opts.server.port = opts.server.port || "80";
-  opts.server.host = opts.server.host || "localhost:80";
-  //*/
   
   // Extension Class:
   var Extension = function(opts){

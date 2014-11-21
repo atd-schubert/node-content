@@ -1,14 +1,14 @@
 {
-  "name": "nce-jsch-editor",
+  "name": "nce-restart",
   "version": "0.0.0",
-  "description": "Basic content editor for the nc cms",
+  "description": "A helper to restart the nc cms",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/atd-schubert/nce-jsch-editor.git"
+    "url": "https://github.com/atd-schubert/nce-restart.git"
   },
   "keywords": [
     "cms",
@@ -19,12 +19,15 @@
   "author": "Arne Schubert <atd.schubert@gmail.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/atd-schubert/nce-jsch-editor/issues"
+    "url": "https://github.com/atd-schubert/nce-restart/issues"
   },
-  "homepage": "https://github.com/atd-schubert/nce-jsch-editor",
+  "homepage": "https://github.com/atd-schubert/nce-restart",
   "dependencies": {
     "body-parser": "^1.9.2",
-    "jade": "^1.7.0"
+    "busboy": "^0.2.9",
+    "jade": "^1.5.0",
+    "mime": "^1.2.11",
+    "recommencement": "0.0.1"
   },
   "devDependencies": {},
   "peerDependencies": {

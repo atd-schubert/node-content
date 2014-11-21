@@ -7,8 +7,6 @@ var bodyParser = require("body-parser");
 module.exports = function(cms){
   if(!cms) throw new Error("You have to specify the cms object");
   
-  var logger = cms.getExtension("winston").createLogger("dummy");
-  
   var clientCSS = function(obj){
     fs.readFile(__dirname+"/assets/style.css", obj.collector());
   };
@@ -147,6 +145,7 @@ module.exports = function(cms){
   };
   
   var ext = cms.createExtension({package: require("./package.json")});
+  var logger = cms.getExtension("winston").createLogger(ext.name);
   
   ext.on("install", function(event){
     ext.config.modelName = ext.config.modelName || "vanityUrl";

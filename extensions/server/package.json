@@ -1,0 +1,38 @@
+{
+  "name": "nce-server",
+  "version": "0.0.0",
+  "description": "A delivering server for the nc cms build with express",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atd-schubert/nce-server.git"
+  },
+  "keywords": [
+    "cms",
+    "nc",
+    "middleware",
+    "assets"
+  ],
+  "author": "Arne Schubert <atd.schubert@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/atd-schubert/nce-server/issues"
+  },
+  "homepage": "https://github.com/atd-schubert/nce-server",
+  "dependencies": {
+    "body-parser": "^1.9.2",
+    "busboy": "^0.2.9",
+    "compression": "^1.2.0",
+    "express": "^4.10.2",
+    "jade": "^1.5.0",
+    "mime": "^1.2.11",
+    "recommencement": "0.0.1"
+  },
+  "devDependencies": {},
+  "peerDependencies": {
+    "nce-backend": "0.0.0"
+  }
+}
