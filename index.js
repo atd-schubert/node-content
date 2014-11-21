@@ -62,6 +62,7 @@ var NodeContentManagement = function NodeContent(opts){
 	  
 	  this.cms = self;
 	  this.package = opts.package;
+	  this.name = name;
 	  this.config = this.cms.config[name] = this.cms.config[name] || {};
 	  
 	  this.cms.emit("createExtension", this);

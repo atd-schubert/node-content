@@ -14,6 +14,7 @@ module.exports = function(cms){
     if(cms.getExtension("vanity-url") && cms.getExtension("vanity-url").renderVanityUrlLists) return cms.getExtension("vanity-url").renderVanityUrlLists(a,b,c);
     return c(null, "");
   };
+
   var clientCSS = function(obj){
     fs.readFile(__dirname+"/assets/style.css", obj.collector());
   };
@@ -26,6 +27,7 @@ module.exports = function(cms){
   };
   
   var ext = cms.createExtension({package: require("./package.json")});
+  var logger = cms.getExtension("winston").createLogger(ext.name);
   
   ext.on("install", function(event){
     

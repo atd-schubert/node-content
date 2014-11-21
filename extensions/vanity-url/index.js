@@ -7,6 +7,8 @@ var bodyParser = require("body-parser");
 module.exports = function(cms){
   if(!cms) throw new Error("You have to specify the cms object");
   
+  var logger = cms.getExtension("winston").createLogger("dummy");
+  
   var clientCSS = function(obj){
     fs.readFile(__dirname+"/assets/style.css", obj.collector());
   };
@@ -73,7 +75,6 @@ module.exports = function(cms){
             return res.end(html);
           });
         });
-        return res.send("// TODO: vanityUrl root");
       }
       if(/^\/add\/?(\?[\w\W]*)?$/.test(action)) {
         if(req.method === "POST") {
@@ -86,7 +87,7 @@ module.exports = function(cms){
               if("json" in req.query || req.headers["accept"].split(",").indexOf(/^application\/json( ?; ?q=1(.0)?)?$/) > 0) {
                 res.writeHeader(200, {"content-type": "application/json"});
                 var status;
-                if(err && err.err.indexOf("duplicate key")>0) status = "duplicate url";
+                if(err && err.message.indexOf("duplicate key")>0) status = "duplicate url";
                 else status = "OK"
                 return res.end(JSON.stringify({status: status, doc:doc}));
               } else {

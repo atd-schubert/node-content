@@ -50,6 +50,10 @@ var amanecer = require("./extensions/amanecer")(cms);
 amanecer.install();
 amanecer.activate();
 
+var restart = require("./extensions/restart")(cms);
+restart.install();
+restart.activate();
+
 
 
 /*

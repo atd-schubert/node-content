@@ -79,6 +79,7 @@ module.exports = function(cms){
     backend.on("buildClientCSS", clientCSS);
     backend.on("buildClientJS", clientJS);*/
     
+    ext.logger.trace("This is an example trace");
     ext.logger.error("This is an example error");
     ext.logger.warn("This is an example warning");
     ext.logger.debug("This is an example debug");
@@ -96,37 +97,61 @@ module.exports = function(cms){
   
   ext.createLogger = function(name, opts){
     if(name in loggers) return false;
+    opts = opts || {};
     var _level = opts.level || 8;
     // TODO: for hash in loop...
     var logger = {
       log: function(type, msg){
         ext.logger.log(type, name+": "+msg);
       },
+      trace: function(msg){
+        if(_level > 0) return;
+        try {throw new Error(msg);}catch(e){
+          var stack = e.stack.split("\n");
+          stack[0]="";
+          stack[1]="";
+          stack= stack.join("\n");
+          ext.logger.trace(name+": "+msg+stack);
+        }
+      },
       input: function(msg){
+        if(_level > 1) return;
         ext.logger.input(name+": "+msg);
       },
       verbose: function(msg){
+        if(_level > 2) return;
         ext.logger.verbose(name+": "+msg);
       },
       prompt: function(msg){
+        if(_level > 3) return;
         ext.logger.prompt(name+": "+msg);
       },
       debug: function(msg){
+        if(_level > 4) return;
         ext.logger.debug(name+": "+msg);
       },
       info: function(msg){
+        if(_level > 5) return;
         ext.logger.info(name+": "+msg);
       },
+      profile: function(msg){
+        if(_level > 5) return;
+        ext.logger.profile(name+": "+msg);
+      },
       data: function(msg){
+        if(_level > 6) return;
         ext.logger.data(name+": "+msg);
       },
       help: function(msg){
+        if(_level > 7) return;
         ext.logger.help(name+": "+msg);
       },
       warn: function(msg){
+        if(_level > 8) return;
         ext.logger.warn(name+": "+msg);
       },
       error: function(msg){
+        if(_level > 9) return;
         ext.logger.error(name+": "+msg);
       },
       setLevel: function(level){
