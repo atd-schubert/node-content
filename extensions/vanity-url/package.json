@@ -2,7 +2,7 @@
   "name": "nce-vanity-url",
   "version": "0.0.0",
   "description": "A handler for vanity-urls in the nc cms",
-  "main": "index.js",
+  "main": "vanity-url.js",
   "scripts": {
     "test": "mocha"
   },

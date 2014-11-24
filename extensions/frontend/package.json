@@ -2,7 +2,7 @@
   "name": "nce-frontend",
   "version": "0.0.0",
   "description": "A frontend / content delivery module for the nc cms",
-  "main": "index.js",
+  "main": "frontend.js",
   "scripts": {
     "test": "mocha"
   },

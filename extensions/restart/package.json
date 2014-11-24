@@ -2,7 +2,7 @@
   "name": "nce-restart",
   "version": "0.0.0",
   "description": "A helper to restart the nc cms",
-  "main": "index.js",
+  "main": "restart.js",
   "scripts": {
     "test": "mocha"
   },

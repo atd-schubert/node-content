@@ -2,7 +2,7 @@
   "name": "nce-mongoose-store",
   "version": "0.0.0",
   "description": "The basic document-store for nc cms",
-  "main": "index.js",
+  "main": "mongoose-store.js",
   "scripts": {
     "test": "mocha"
   },

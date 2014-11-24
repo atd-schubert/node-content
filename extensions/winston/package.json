@@ -2,7 +2,7 @@
   "name": "nce-winston",
   "version": "0.0.0",
   "description": "A logger for the nc cms",
-  "main": "index.js",
+  "main": "winston.js",
   "scripts": {
     "test": "mocha"
   },

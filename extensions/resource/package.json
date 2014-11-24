@@ -2,7 +2,7 @@
   "name": "nce-resource",
   "version": "0.0.0",
   "description": "A resource manager for the nc cms",
-  "main": "index.js",
+  "main": "resource.js",
   "scripts": {
     "test": "mocha"
   },

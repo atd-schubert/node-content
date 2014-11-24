@@ -2,7 +2,7 @@
   "name": "nce-dummy",
   "version": "0.0.0",
   "description": "A dummy extension for the nc cms",
-  "main": "index.js",
+  "main": "dummy.js",
   "scripts": {
     "test": "mocha"
   },

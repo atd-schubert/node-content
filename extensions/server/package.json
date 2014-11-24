@@ -2,7 +2,7 @@
   "name": "nce-server",
   "version": "0.0.0",
   "description": "A delivering server for the nc cms build with express",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "mocha"
   },

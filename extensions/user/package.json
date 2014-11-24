@@ -2,7 +2,7 @@
   "name": "nce-user",
   "version": "0.0.0",
   "description": "A caching module for the nc cms",
-  "main": "index.js",
+  "main": "user.js",
   "scripts": {
     "test": "mocha"
   },

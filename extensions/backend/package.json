@@ -2,7 +2,7 @@
   "name": "nce-backend",
   "version": "0.0.0",
   "description": "The backend for the nc cms",
-  "main": "index.js",
+  "main": "backend.js",
   "scripts": {
     "test": "mocha"
   },

@@ -2,7 +2,7 @@
   "name": "nce-jsch-editor",
   "version": "0.0.0",
   "description": "Basic content editor for the nc cms",
-  "main": "index.js",
+  "main": "jsch-editor.js",
   "scripts": {
     "test": "mocha"
   },
