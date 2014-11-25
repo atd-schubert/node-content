@@ -7,6 +7,8 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   
   ext.on("install", function(event){
     ext.config.disableCompression = ext.config.disableCompression || false;
+    ext.config.disableCookieParser = ext.config.disableCookieParser || false;
+    ext.config.disableSession = ext.config.disableSession || false;
     ext.config.port = ext.config.port || 3000;
     ext.express = require('express');
     ext.app = ext.express();
@@ -17,6 +19,9 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   
   ext.on("activate", function(event){
     if(!ext.config.disableCompression) ext.app.use(require('compression')());
+    if(!ext.config.disableCookieParser) ext.app.use(require("cookie-parser")());
+    if(!ext.config.disableSession) ext.app.use(require("express-session")({ secret: '// TODO: make it configurable' }));
+    
     ext.app.use(cms.middleware);
     ext.app.listen(ext.config.port, function(){
       console.log("NC Content-Management-System is listening on port %d in %s mode", ext.config.port, ext.app.settings.env);

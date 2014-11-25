@@ -6,8 +6,12 @@ module.exports = function(cms){
   if(!cms) throw new Error("You have to specify the cms object");
   
   var router = function(req, res, next){
-    try{throw new Error("Dummy extension");} catch(e){console.error(e)};
-    next();
+    var backend = cms.getExtension("backend");
+    if(req.url.substr(0, backend.config.route.length+ext.config.subRoute.length) === backend.config.route+ext.config.subRoute) {
+      try{throw new Error("Dummy extension");} catch(e){console.error(e)};
+    }
+
+    return next();
   };
   
   var vanitize = function(a,b,c){
@@ -23,7 +27,7 @@ module.exports = function(cms){
   };
   
   var buildNavigation = function(obj){ // TODO: build with collector!
-    menu.push({class:"ajaxBody", caption:"dummy", href:cms.getExtension("backend").config.route+ext.config.subRoute});
+    obj.collector()(null, {class:"ajaxBody", caption:"dummy", href:cms.getExtension("backend").config.route+ext.config.subRoute});
   };
   
   var ext = cms.createExtension({package: require("./package.json")});
@@ -47,7 +51,7 @@ module.exports = function(cms){
   
   ext.on("activate", function(event){
 	  if(cms.requestMiddlewares.indexOf(router) === -1) {
-		  cms.requestMiddlewares.unshift(router);
+		  cms.requestMiddlewares.push(router);
 	  }
     backend.on("buildNavigation", buildNavigation);
     backend.on("buildClientCSS", clientCSS);

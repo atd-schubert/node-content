@@ -21,7 +21,7 @@ var NodeContentManagement = function NodeContent(opts){
     
     if(name.substr(0, 4) === "nce-") name = name.substr(4);
     
-    if(Extension.extensions[name]) throw new Error("An extension has to have a name");
+    if(Extension.extensions[name]) throw new Error("There is already an extension with the name '"+name+"'.");
     Extension.extensions[name] = this;
     
 	  this.activate = function(){

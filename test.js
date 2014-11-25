@@ -9,9 +9,16 @@ var logger = require("./extensions/winston")(cms);
 logger.install();
 logger.activate();
 
+
 var store = require("./extensions/mongoose-store")(cms);
 store.install();
 store.activate();
+
+
+var user = require("./extensions/user")(cms);
+user.install();
+user.activate();
+
 
 var frontend = require("./extensions/frontend")(cms);
 frontend.install();
@@ -38,7 +45,7 @@ var resource = require("./extensions/resource")(cms);
 resource.install();
 resource.activate();
 
-var amanecer = require("./extensions/amanecer")(cms);
+var amanecer = require("./amanecer")(cms);
 amanecer.install();
 amanecer.activate();
 
