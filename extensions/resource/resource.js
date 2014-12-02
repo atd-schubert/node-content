@@ -1,10 +1,5 @@
 "use strict";
 
-/*
-  
-  E-Tag besteht aus Doc._id + Doc.__v;
-  
-*/
 var fs = require("fs");
 var jade = require("jade");
 var mime = require("mime");
@@ -12,7 +7,7 @@ var Busboy = require("busboy");
 var bodyParser = require("body-parser");
 
 
-module.exports = function(cms, opts){ // TODO: maybe don't use opts at this place, use install args instead...
+module.exports = function(cms){
   if(!cms) throw new Error("You have to specify the cms object");
   
   var vanitize = function(a,b,c){
@@ -292,13 +287,6 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
       var req = obj.request;
       var res = obj.response;
       
-      /*if(req.headers["if-none-match"]===doc._id+doc.__v+"json"){ 
-        res.writeHead(304, {
-          "Content-Type": doc.mimetype,
-          "ETag": doc._id+doc.__v+"json"
-        });
-        return res.end();
-      }*/
       res.writeHead(200, {"content-type": "application/json"});
       return res.end(JSON.stringify(doc, null, 2));
     }));
@@ -307,14 +295,18 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
       var req = obj.request;
       var res = obj.response;
       if(!doc) return res.error(new Error("Can't find resource."));
-      
-      var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
-      res.writeHead(200, {
-        "Content-Type": doc.mimetype,
-        'Content-Disposition': 'inline; filename="'+doc.filename+'"'
+      return fs.stat(ext.config.dumpPath+"/"+doc._id, function(err, stat){
+        if(err) return res.error(err);
+        
+        var file = fs.createReadStream(ext.config.dumpPath+"/"+doc._id);
+        res.writeHead(200, {
+          "content-type": doc.mimetype,
+          'content-disposition': 'inline; filename="'+doc.filename+'"',
+          "content-length": stat.size
+        });
+        return file.pipe(res);
+        
       });
-      return file.pipe(res);
-      return;
     });
     file.autoNotModified = true;
     file.autoEtag = true;

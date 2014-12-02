@@ -13,11 +13,14 @@ h2 Do you really want to remove this Resource?
     .input-group
       span.input-group-addon Tags:
       - var tags = entry.tags.join(", ");
-      input#tags.form-control.autoEnable(type="text", name="tags", disabled="", placeholder="Comma separated tags", value=tags)
+      input#tags.form-control(type="text", name="tags", disabled="", placeholder="Comma separated tags", value=tags)
     .input-group.autoEnable
       span.input-group-addon Filename:
-      input#filename.form-control.autoEnable(type="text", name="filename", disabled="", placeholder="Filename to save as", value=entry.filename)
+      input#filename.form-control(type="text", name="filename", disabled="", placeholder="Filename to save as", value=entry.filename)
     .input-group.autoEnable
       span.input-group-addon Content-Type:
-      input#mimetype.form-control.autoEnable(type="text", name="mimetype", disabled="", placeholder="Content-Type", value=entry.mimetype)
+      input#mimetype.form-control(type="text", name="mimetype", disabled="", placeholder="Content-Type", value=entry.mimetype)
     input.btn.btn-danger(type="submit", value="Remove")
+  p
+    br
+    a(href=baseUrl) Back to overview

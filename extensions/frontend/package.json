@@ -23,10 +23,10 @@
   },
   "homepage": "https://github.com/atd-schubert/nce-frontend",
   "dependencies": {
+    "MD5": "^1.2.1"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "peerDependencies": {
-	  "nce-backend": "0.0.0"
+    "nce-backend": "0.0.0"
   }
 }

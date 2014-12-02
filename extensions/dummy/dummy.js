@@ -26,7 +26,7 @@ module.exports = function(cms){
     fs.readFile(__dirname+"/assets/script.js", obj.collector());
   };
   
-  var buildNavigation = function(obj){ // TODO: build with collector!
+  var buildNavigation = function(obj){
     obj.collector()(null, {class:"ajaxBody", caption:"dummy", href:cms.getExtension("backend").config.route+ext.config.subRoute});
   };
   

@@ -1,6 +1,7 @@
 "use strict";
 
 var ContentStream = require("./contentStream");
+var md5 = require("MD5");
 
 var mkQuery = function(str){
 	if(!str) return {};
@@ -21,7 +22,7 @@ var mkQuery = function(str){
   }
 };
 
-module.exports = function(cms, opts){ // TODO: maybe don't use opts at this place, use install args instead...
+module.exports = function(cms, opts){
   if(!cms) throw new Error("You have to specify the cms object");
   
   var View = function(name, fn, opts){
@@ -56,10 +57,11 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
       if(obj.response) response = obj.response;
       obj.response = new ContentStream({pipeHead: true, cutOnEnd:true});
       obj.response.writeHead = function(code, headers){
+        console.log("asfa", arguments);
         headers = headers || {};
-        if(self.autoEtag && obj.content && obj.content.length === 1 && ("_id" in obj.content[0]) && ("__v" in obj.content[0])) {
-          headers.etag = headers.etag || obj.content[0]._id + obj.content[0].__v + name;
-          // TODO: entityTag aus allen content[x]._id 's und __v 's und daraus + viewName einen md5
+        if(self.autoEtag && obj.content && obj.content.length > 0) {
+          var etag = ext.calcETag(obj.content);
+          if(etag) headers.etag = etag + name;
         }
         if(self.autoNotModified && obj.request.headers["if-none-match"] === headers.etag) {
           obj.response.emit("writeHead", 304, headers);
@@ -145,7 +147,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   ext.streamContent = function(modelName, viewName, query, opts){
     var store = cms.getExtension("mongoose-store");
     var response = opts && opts.response;
-    var stream = new ContentStream({pipeHead: true, withWriteHead: true, cutOnEnd:true});
+    var stream = new ContentStream({killHead: true, pipeHead: true, withWriteHead: true, cutOnEnd:true});
     
     if(response) stream.pipe(response);
     
@@ -187,6 +189,23 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
       });
     });
   };*/
+  
+  ext.calcETag = function(content, salt){
+    salt = salt || ", ";
+    var i;
+    var rg = [];
+    if(Array.prototype.isPrototypeOf(content)) {
+      for (i=0; i<content.length; i++) {
+        if(!("_id" in content[i]) ||!("__v" in content[i])) return false;
+        rg.push(content[i]._id.toString());
+        rg.push(content[i].__v.toString());
+      }
+    } else {
+      return ext.calcETag([content], salt);
+    }
+    console.log(rg.join(salt));
+    return md5(rg.join(salt));
+  }
   
   ext.on("install", function(event){
     ext.config.route = ext.config.route || "/cms";

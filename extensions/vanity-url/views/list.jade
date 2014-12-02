@@ -20,11 +20,11 @@
       else
         - for(var i=0; i<docs.length; i++)
           // form.ajaxStatus(method="POST", action="")
-          tr
+          tr(data-id=docs[i]._id.toString())
             - for (var n=0; n<  opts.cols.length; n++)
               - if(opts.cols[n]=== "action")
                 td
-                  input.btn.btn-default.vanity-url-save(disabled, type="button", value="save", data-id=docs[i]._id.toString())
+                  input.btn.btn-default.vanity-url-save(disabled, type="button", value="save")
                   input.btn.btn-danger.vanity-url-remove(type="button", value="remove", data-id=docs[i]._id.toString())
               
               - else if(opts.cols[n]=== "#")

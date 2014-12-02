@@ -16,7 +16,7 @@ var connectDB = function(path) {
   return mongoose;
 };
 
-module.exports = function(cms, opts){ // TODO: maybe don't use opts at this place, use install args instead...
+module.exports = function(cms){
   if(!cms) throw new Error("You have to specify the cms object");
   
   var store = false;

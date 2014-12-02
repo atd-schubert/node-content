@@ -7,15 +7,6 @@ var util = require("util");
 var ContentStream = function(opts){
   EventEmitter.call(this);
   
-  // TODO:
-  // opts.cutOnEnd; ok
-  // opts.withWriteHead; ok
-  // opts.killHead; ok
-  // opts.pipeHead; ok
-  // opts.logger;
-  // opts.withClose; ok
-  // opts.unpipeErrors = fn(err){} ok
-  
   var dummyFn = function(){};
   
   this.write = function(data){

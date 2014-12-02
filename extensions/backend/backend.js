@@ -43,7 +43,7 @@ var mkCollector = function(obj, cb){
   return obj;
 };
 
-module.exports = function(cms, opts){ // TODO: maybe don't use opts at this place, use install args instead...
+module.exports = function(cms){
   if(!cms) throw new Error("You have to specify the cms object");
   
   var backendRouter = function(req, res, next){
@@ -128,7 +128,7 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
   
   ext.middleware = backendRouter;
   
-  ext.buildNavigation = function(opts, cb){ // TODO: build with collector!
+  ext.buildNavigation = function(opts, cb){
     if(!cb) throw new Error("You have to specify a callback");
     ext.emit("buildNavigation", mkCollector(opts, function(err, menu){
       if(err) return cb(err);

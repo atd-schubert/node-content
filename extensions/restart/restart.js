@@ -2,7 +2,7 @@
 
 var restart = require("recommencement").restart;
 
-module.exports = function(cms, opts){ // TODO: maybe don't use opts at this place, use install args instead...
+module.exports = function(cms, opts){
   if(!cms) throw new Error("You have to specify the cms object");
   
   var clientCSS = function(obj){
@@ -45,7 +45,6 @@ module.exports = function(cms, opts){ // TODO: maybe don't use opts at this plac
     ext.config.subRoute = ext.config.subRoute || "/restart";
   });
   ext.on("uninstall", function(event){
-    // TODO: remove model...
   });
   
   ext.on("activate", function(event){
